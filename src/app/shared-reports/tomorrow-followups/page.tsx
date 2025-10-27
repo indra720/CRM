@@ -177,7 +177,6 @@ export default function TomorrowFollowupsPage() {
   return (
     <div className="space-y-6 flex flex-col h-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Tomorrow Followups</h1>
         <Link href="/superadmin/users/admin">
             <Button variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -187,22 +186,16 @@ export default function TomorrowFollowupsPage() {
       </div>
 
       <div className="space-y-4">
-        <form className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+        <form className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end max-w-3xl">
           <div className="space-y-2">
             <Label htmlFor="start_date">Start Date</Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="start_date" name="start_date" type="date" placeholder="mm/dd/yyyy" className="pl-10" />
-            </div>
+            <Input id="start_date" name="start_date" type="text" placeholder="mm/dd/yyyy" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => {if (!e.target.value) e.target.type = 'text'}} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="end_date">End Date</Label>
-            <div className="relative">
-               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="end_date" name="end_date" type="date" placeholder="mm/dd/yyyy" className="pl-10" />
-            </div>
+            <Input id="end_date" name="end_date" type="text" placeholder="mm/dd/yyyy" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => {if (!e.target.value) e.target.type = 'text'}} />
           </div>
-          <Button type="submit" className="w-full md:w-auto self-end">
+          <Button type="submit" className="self-end">
             <FileDown className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -220,106 +213,96 @@ export default function TomorrowFollowupsPage() {
       </div>
 
 
-      <Card className="shadow-lg rounded-2xl flex-1 flex flex-col min-h-0">
-        <CardContent className="p-0 flex-1 flex flex-col min-h-0">
-          <div className="overflow-x-auto flex-1 min-h-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="sticky left-0 bg-background/95 z-5 shadow-sm">Name</TableHead>
-                  <TableHead className="hidden sm:table-cell">Staff</TableHead>
-                  <TableHead className="hidden sm:table-cell">Team Leader</TableHead>
-                  <TableHead>Call</TableHead>
-                  <TableHead className="hidden sm:table-cell">Whatsapp</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    <span className="lg:inline">Follow up </span>
-                    <span className="inline lg:hidden">F.U. </span>
-                    Date
-                  </TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    <span className="lg:inline">Follow up </span>
-                    <span className="inline lg:hidden">F.U. </span>
-                    Time
-                  </TableHead>
-                  <TableHead className="hidden md:table-cell">History</TableHead>
-                  <TableHead className="text-center sticky right-0 bg-background/95 z-5 shadow-sm">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
+      <div className="grid gap-4">
+        <Card className="overflow-hidden">
+          <CardContent className="p-2 md:p-6 md:pt-0">
+            <div className="overflow-x-auto">
+              <Table className="min-w-[700px]">
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-                    </TableCell>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Staff</TableHead>
+                    <TableHead>Team Leader</TableHead>
+                    <TableHead>Call</TableHead>
+                    <TableHead>Whatsapp</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>History</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
-                ) : leads.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      No records found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  leads.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium sticky left-0 bg-background/95 z-5 text-base md:text-sm shadow-sm">{user.name}</TableCell>
-                      <TableCell className="whitespace-nowrap text-base md:text-sm hidden sm:table-cell">{user.assigned_to?.name}</TableCell>
-                      <TableCell className="whitespace-nowrap text-base md:text-sm hidden sm:table-cell">{user.team_leader?.name}</TableCell>
-                      <TableCell className="text-base md:text-sm">
-                        <a href={`tel:+91${user.call}`}><Phone className="h-4 w-4 text-green-500" /></a>
-                      </TableCell>
-                      <TableCell className="text-base md:text-sm hidden sm:table-cell">
-                        <a href={`https://wa.me/+91${user.call}`} target="_blank" rel="noreferrer"><MessageSquare className="h-4 w-4 text-blue-500" /></a>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-base md:text-sm hidden md:table-cell">{user.follow_up_date || 'N/A'}</TableCell>
-                      <TableCell className="whitespace-nowrap text-base md:text-sm hidden md:table-cell">{user.follow_up_time || 'N/A'}</TableCell>
-                      <TableCell className="text-base md:text-sm hidden md:table-cell">
-                        <Link href={`/lead_history/${user.id}`}><History className="h-4 w-4 text-muted-foreground" /></Link>
-                      </TableCell>
-                      <TableCell className="text-center sticky right-0 bg-background/95 z-5">
-                        <div className="flex flex-col items-center justify-center gap-1 sm:flex-row sm:gap-2">
-                          <Button variant="outline" size="sm" className="w-full text-center" onClick={() => openEditModal(user.id)}>
-                            <span className="hidden lg:inline">Follow Up</span>
-                            <span className="inline lg:hidden">F.U.</span>
-                          </Button>
-                          <Button variant="ghost" size="icon" className="md:hidden lg:hidden" onClick={() => openDetailsModal(user)}>
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">View Details</span>
-                          </Button>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-24 text-center">
+                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="p-4 border-t">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} />
-                </PaginationItem>
-                <PaginationItem>
-                    <PaginationLink isActive>
-                        {page}
-                    </PaginationLink>
-                </PaginationItem>
-                 <PaginationItem>
-                  <PaginationNext onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        </CardContent>
-      </Card>
+                  ) : leads.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-24 text-center">
+                        No records found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    leads.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium text-base md:text-sm">{user.name}</TableCell>
+                        <TableCell className="whitespace-nowrap text-base md:text-sm">{user.assigned_to?.name}</TableCell>
+                        <TableCell className="whitespace-nowrap text-base md:text-sm">{user.team_leader?.name}</TableCell>
+                        <TableCell className="text-base md:text-sm">
+                          <a href={`tel:+91${user.call}`}><Phone className="h-4 w-4 text-green-500" /></a>
+                        </TableCell>
+                        <TableCell className="text-base md:text-sm">
+                          <a href={`https://wa.me/+91${user.call}`} target="_blank" rel="noreferrer"><MessageSquare className="h-4 w-4 text-blue-500" /></a>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-base md:text-sm">{user.follow_up_date || 'N/A'}</TableCell>
+                        <TableCell className="whitespace-nowrap text-base md:text-sm">{user.follow_up_time || 'N/A'}</TableCell>
+                        <TableCell className="text-base md:text-sm">
+                          <Link href={`/lead_history/${user.id}`}><History className="h-4 w-4 text-muted-foreground" /></Link>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1 sm:gap-2">
+                            <Button variant="outline" size="sm" className="w-full text-center" onClick={() => openEditModal(user.id)}>
+                              <span className="hidden lg:inline">Follow Up</span>
+                              <span className="inline lg:hidden">F.U.</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="p-4 border-t">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} />
+                  </PaginationItem>
+                  <PaginationItem>
+                      <PaginationLink isActive>
+                          {page}
+                      </PaginationLink>
+                  </PaginationItem>
+                   <PaginationItem>
+                    <PaginationNext onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="w-[95vw] sm:max-w-md p-4 max-h-[90vh] flex flex-col">
+      <Dialog open={showModal} onOpenChange={setShowModal} >
+        <DialogContent className="w-[95vw] sm:max-w-md p-4 max-h-[90vh] flex flex-col rounded-md">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Leads Update</DialogTitle>
             <DialogDescription>Update the status and follow-up details for this lead.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4 overflow-y-auto flex-1">
+          <div className="grid gap-4 p-4 overflow-y-auto flex-1 ">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
                <Select value={statusValue} onValueChange={setStatusValue}>
@@ -338,15 +321,15 @@ export default function TomorrowFollowupsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="followUpDate">
-                    <span className="hidden sm:inline">Follow Up</span><span className="sm:hidden">F.U.</span> Date
+                    <span className="hidden sm:inline"></span><span className="sm:hidden"></span> Date
                   </Label>
                   <Input id="followUpDate" type="date" value={followDate} onChange={(e) => setFollowDate(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                    <Label htmlFor="followUpTime">
-                    <span className="hidden sm:inline">Follow Up</span><span className="sm:hidden">F.U.</span> Time
+                    <span className="hidden sm:inline"></span><span className="sm:hidden"></span> Time
                   </Label>
-                  <Input id="followUpTime" type="time" value={followTime} onChange={(e) => setFollowTime(e.target.value)} />
+                  <Input id="followUpTime" type="time" value={followTime} onChange={(e) => setFollowTime(e.target.value)} className='p-1' />
                 </div>
               </div>
             )}
@@ -356,7 +339,7 @@ export default function TomorrowFollowupsPage() {
               <Textarea id="message" value={messageValue} onChange={(e) => setMessageValue(e.target.value)} placeholder="Enter a message or notes..."/>
             </div>
           </div>
-          <DialogFooter className="flex-shrink-0">
+          <DialogFooter className="flex-shrink-0 gap-2">
             <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
             <Button onClick={saveChanges}>Update Status</Button>
           </DialogFooter>

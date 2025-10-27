@@ -196,7 +196,7 @@ const TotalLeadsPage = () => {
   return (
     <div className="space-y-6">
         <h1 className="text-2xl font-bold">Leads</h1>
-        <Card className="shadow-lg rounded-2xl">
+        <Card className="shadow-lg rounded-2xl overflow-hidden">
             <CardContent className="p-6 space-y-6">
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex items-center gap-2">
@@ -204,7 +204,7 @@ const TotalLeadsPage = () => {
                             <Search className="h-4 w-4" />
                         </Button>
                         <Input
-                            placeholder="Search..."
+                            placeholder="Search leads..."
                             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
                             onChange={(event) =>
                                 table.getColumn('name')?.setFilterValue(event.target.value)
@@ -217,8 +217,8 @@ const TotalLeadsPage = () => {
                         Add Lead
                     </Button>
                 </div>
-                <div className="rounded-md border">
-                    <Table>
+                <div className="rounded-md border overflow-x-auto">
+                    <Table className="min-w-[700px]">
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
