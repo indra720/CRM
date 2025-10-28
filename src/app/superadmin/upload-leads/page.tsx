@@ -13,7 +13,7 @@ import {
   ColumnFiltersState,
 } from '@tanstack/react-table';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Phone, MessageSquare, ArrowUpDown, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,6 @@ type Lead = {
   status: string;
 };
 
-// Mock data to replicate the functionality from the provided code.
 const mockLeads: Lead[] = [
     { id: 1, name: 'Aarav Sharma', call: '9876543210', status: 'New' },
     { id: 2, name: 'Saanvi Patel', call: '9876543211', status: 'Contacted' },
@@ -69,8 +68,8 @@ export const columns: ColumnDef<Lead>[] = [
     accessorKey: 'whatsapp',
     header: 'Whatsapp',
     cell: ({ row }) => (
-      <a
-        href={`https://wa.me/${row.getValue('call')}?text=${encodeURIComponent('Hello ' + row.original.name)}`}
+      
+        <a href={"https://wa.me/" + row.getValue('call') + "?text=" + encodeURIComponent('Hello ' + row.original.name)}
         target="_blank"
         rel="noopener noreferrer"
         className="inline-block hover:scale-110 transition-transform"
@@ -120,92 +119,102 @@ const UploadLeadsPage = () => {
   return (
     <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-bold">View Uploaded Leads</h1>
-        <Card className="shadow-lg rounded-2xl">
-            <CardContent className="p-6 ">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="relative w-full max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search leads..."
-                            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-                            onChange={(event) =>
-                                table.getColumn('name')?.setFilterValue(event.target.value)
-                            }
-                            className="pl-10"
-                        />
-                    </div>
+        
+        <div className="grid gap-4">
+          {/* ✅ EXACT STRUCTURE FROM DOCUMENT 4 */}
+          <Card className="overflow-hidden">
+            <CardContent className="p-2 md:p-6 md:pt-0">
+              
+              {/* Search Bar - Above Table */}
+              <div className="flex items-center justify-between mb-4 px-2 pt-4 md:px-0">
+                <div className="relative w-full max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search leads..."
+                    value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+                    onChange={(event) =>
+                      table.getColumn('name')?.setFilterValue(event.target.value)
+                    }
+                    className="pl-10"
+                  />
                 </div>
-                <div className="overflow-hidden">
-                    <div className="rounded-md border overflow-x-auto">
-                        <Table className="min-w-[700px]">
-                            <TableHeader>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => {
-                                            return (
-                                                <TableHead key={header.id} className="text-center">
-                                                    {header.isPlaceholder
-                                                        ? null
-                                                        : flexRender(
-                                                            header.column.columnDef.header,
-                                                            header.getContext()
-                                                        )}
-                                                </TableHead>
-                                            );
-                                        })}
-                                    </TableRow>
-                                ))}
-                            </TableHeader>
-                            <TableBody>
-                                {table.getRowModel().rows?.length ? (
-                                    table.getRowModel().rows.map((row) => (
-                                        <TableRow
-                                            key={row.id}
-                                            data-state={row.getIsSelected() && 'selected'}
-                                        >
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id} className="text-center">
-                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                                            No results.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </div>
-                <div className="flex items-center justify-between space-x-2 py-4">
+              </div>
+
+              {/* ✅ SCROLLABLE TABLE - EXACT SAME AS DOCUMENT 4 */}
+<div className="w-full rounded-md border overflow-x-auto">
+                        <Table className="min-w-[400px]">
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          return (
+                                                                            <TableHead key={header.id} className="text-center px-1">                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </TableHead>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow
+                          key={row.id}
+                          data-state={row.getIsSelected() && 'selected'}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                                                                            <TableCell key={cell.id} className="text-center px-1">                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              <div className="p-4 border-t">
+                <div className="flex flex-col items-center space-y-2 py-4">
                     <div className="text-sm text-muted-foreground">
                         Showing {table.getRowModel().rows.length} of {data.length} entries
                     </div>
                     <div className="space-x-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
-                        >
-                            Previous
-                        </Button>
-                        <Button
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => table.previousPage()}
+                                                disabled={!table.getCanPreviousPage()}
+                                                className={!table.getCanPreviousPage() ? '' : 'bg-orange-500 hover:bg-orange-600 text-white'}
+                                            >
+                                                Previous
+                                            </Button>                        <Button
                             variant="outline"
                             size="sm"
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
+                            className={!table.getCanNextPage() ? '' : 'bg-orange-500 hover:bg-orange-600 text-white'}
                         >
                             Next
                         </Button>
-                    </div>
+                  </div>
                 </div>
+              </div>
+
             </CardContent>
-        </Card>
+          </Card>
+        </div>
     </div>
   );
 };

@@ -75,6 +75,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DetailsDialog } from '@/components/details-dialog';
 
 
 // Mock User Data
@@ -501,8 +502,7 @@ export default function AdminManagementPage() {
                     </TableCell>
                   </TableRow>
                 )}
-              </TableBody>
-            </Table>
+                                              </TableBody>            </Table>
           </div>
         </CardContent>
       </Card>

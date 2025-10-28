@@ -196,104 +196,92 @@ const TotalLeadsPage = () => {
   return (
     <div className="space-y-6">
         <h1 className="text-2xl font-bold">Leads</h1>
-        <Card className="shadow-lg rounded-2xl overflow-hidden">
-            <CardContent className="p-6 space-y-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon">
-                            <Search className="h-4 w-4" />
+        <div className="grid gap-4">
+            <Card className="overflow-hidden">
+                <CardContent className="p-2 md:p-6 md:pt-0">
+                    <div className="flex flex-col sm:flex-row gap-4 my-4">
+                        <div className="flex items-center gap-2">
+                            <div className="relative w-full max-w-sm">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search leads..."
+                                    value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+                                    onChange={(event) =>
+                                        table.getColumn('name')?.setFilterValue(event.target.value)
+                                    }
+                                    className="pl-10"
+                                />
+                            </div>
+                        </div>
+                        <Button onClick={() => setAddLeadModalOpen(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add Lead
                         </Button>
-                        <Input
-                            placeholder="Search leads..."
-                            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-                            onChange={(event) =>
-                                table.getColumn('name')?.setFilterValue(event.target.value)
-                            }
-                            className="w-full sm:w-auto"
-                        />
                     </div>
-                    <Button onClick={() => setAddLeadModalOpen(true)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Lead
-                    </Button>
-                </div>
-                <div className="rounded-md border overflow-x-auto">
-                    <Table className="min-w-[700px]">
-                        <TableHeader>
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => {
-                                        return (
-                                            <TableHead key={header.id} className="text-center">
-                                                {header.isPlaceholder
-                                                    ? null
-                                                    : flexRender(
-                                                        header.column.columnDef.header,
-                                                        header.getContext()
-                                                    )}
-                                            </TableHead>
-                                        );
-                                    })}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows?.length ? (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow
-                                        key={row.id}
-                                        data-state={row.getIsSelected() && 'selected'}
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} className="text-center">
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        ))}
+                    <div className="overflow-x-auto">
+                        <Table className="min-w-[700px]">
+                            <TableHeader>
+                                {table.getHeaderGroups().map((headerGroup) => (
+                                    <TableRow key={headerGroup.id}>
+                                        {headerGroup.headers.map((header) => {
+                                            return (
+                                                <TableHead key={header.id}>
+                                                    {header.isPlaceholder
+                                                        ? null
+                                                        : flexRender(
+                                                            header.column.columnDef.header,
+                                                            header.getContext()
+                                                        )}
+                                                </TableHead>
+                                            );
+                                        })}
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                                        No results.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-                <div className="flex items-center justify-center">
-                    <Pagination>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
-                                >
-                                <ChevronsLeft className="h-4 w-4" />
-                                </Button>
-                            </PaginationItem>
-                             <PaginationItem>
-                                <PaginationLink isActive>
-                                {table.getState().pagination.pageIndex + 1}
-                                </PaginationLink>
-                            </PaginationItem>
-                            <PaginationItem>
-                                <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
-                                >
-                                <ChevronsRight className="h-4 w-4" />
-                                </Button>
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                </div>
-            </CardContent>
-        </Card>
+                                ))}
+                            </TableHeader>
+                            <TableBody>
+                                {table.getRowModel().rows?.length ? (
+                                    table.getRowModel().rows.map((row) => (
+                                        <TableRow
+                                            key={row.id}
+                                            data-state={row.getIsSelected() && 'selected'}
+                                        >
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableCell key={cell.id}>
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                                            No results.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <div className="p-4 border-t">
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <PaginationLink isActive>
+                                        {table.getState().pagination.pageIndex + 1}
+                                    </PaginationLink>
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
 
         <Dialog open={addLeadModalOpen} onOpenChange={setAddLeadModalOpen}>
             <DialogContent className="w-[95vw] sm:max-w-2xl">
