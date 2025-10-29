@@ -355,7 +355,7 @@ export default function PendingFollowupsPage() {
                 </div>
                 <div className="space-y-2">
                    <Label htmlFor="followUpTime">
-                    <span className="hidden sm:inline"></span><span className="sm:hidden"></span> Time
+                    <span className="hidden sm:inline"></span><span className="sm:hidden"></span> Time lorevpihfp9asipfn ipdfgpf hgiphpgh
                   </Label>
                   <Input id="followUpTime" type="time" value={followTime} onChange={(e) => setFollowTime(e.target.value)} className='p-1' />
                 </div>
