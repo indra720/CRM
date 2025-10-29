@@ -57,8 +57,16 @@ export function UserNav() {
 
   useEffect(() => {
     const storedRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : null;
-    const userData = storedRole ? roleData[storedRole] : null;
-    setCurrentUser(userData);
+    const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') : null; // Get email from localStorage
+
+    if (storedRole && roleData[storedRole]) {
+      setCurrentUser({
+        ...roleData[storedRole],
+        email: storedEmail || roleData[storedRole].email, // Use storedEmail or fallback
+      });
+    } else {
+      setCurrentUser(null);
+    }
   }, [pathname]);
 
 

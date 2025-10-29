@@ -23,11 +23,6 @@ import {
 } from 'lucide-react';
 
 export const SIDENAV_ITEMS = [
-    {
-    title: 'Dashboard',
-    path: '/admin',
-    icon: <LayoutGrid className="h-5 w-5" />,
-  },
   {
     title: 'User',
     path: '/admin/users',

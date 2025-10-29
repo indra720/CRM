@@ -147,34 +147,34 @@ const LeadsPage = () => {
       <Card className="rounded-2xl shadow-lg">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>S.N.</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-center">Call</TableHead>
-                  <TableHead className="text-center">WhatsApp</TableHead>
-                  <TableHead className="text-center">Change Status</TableHead>
+                  <TableHead className="px-1">S.N.</TableHead>
+                  <TableHead className="px-1">Name</TableHead>
+                  <TableHead className="text-center px-1">Call</TableHead>
+                  <TableHead className="text-center px-1">WhatsApp</TableHead>
+                  <TableHead className="text-center px-1">Change Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLeads.map((lead, index) => (
                   <TableRow key={lead.id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell className="font-medium">{lead.name}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="px-1">{index + 1}</TableCell>
+                    <TableCell className="font-medium px-1">{lead.name}</TableCell>
+                    <TableCell className="text-center px-1">
                       <Button variant="ghost" size="icon" asChild>
                         <a href={`tel:${lead.call}`}><Phone className="h-4 w-4 text-blue-500" /></a>
                       </Button>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center px-1">
                        <Button variant="ghost" size="icon" asChild>
                         <a href={`https://wa.me/91${lead.call}?text=Hello%20${lead.name}`} target="_blank" rel="noopener noreferrer">
                           <MessageSquare className="h-5 w-5 text-green-500" />
                         </a>
                       </Button>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center px-1">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm">{lead.status} ▼</Button>

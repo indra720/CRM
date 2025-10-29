@@ -35,9 +35,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Loader2, Phone, MessageSquare, History, Calendar, FileDown, ArrowLeft, Eye, User, Briefcase, Users, Clock, Tag } from 'lucide-react';
+import { Search, Loader2, Phone, MessageSquare, History, Calendar, FileDown, ArrowLeft, Eye, User, Briefcase, Users, Clock, Tag, MoreVertical } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // Mock data to replicate the API response structure from the provided code.
 const mockLeadsData = {
@@ -175,9 +177,9 @@ export default function PendingFollowupsPage() {
   }
 
   return (
+    <TooltipProvider>
     <div className="space-y-6 flex flex-col h-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Pending Followups</h1>
         <Link href="/superadmin/users/admin">
             <Button variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -187,22 +189,16 @@ export default function PendingFollowupsPage() {
       </div>
 
       <div className="space-y-4">
-        <form className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+        <form className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end max-w-3xl">
           <div className="space-y-2">
             <Label htmlFor="start_date">Start Date</Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="start_date" name="start_date" type="date" placeholder="mm/dd/yyyy" className="pl-10" />
-            </div>
+            <Input id="start_date" name="start_date" type="text" placeholder="mm/dd/yyyy" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => {if (!e.target.value) e.target.type = 'text'}} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="end_date">End Date</Label>
-            <div className="relative">
-               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="end_date" name="end_date" type="date" placeholder="mm/dd/yyyy" className="pl-10" />
-            </div>
+            <Input id="end_date" name="end_date" type="text" placeholder="mm/dd/yyyy" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => {if (!e.target.value) e.target.type = 'text'}} />
           </div>
-          <Button type="submit" className="w-full md:w-auto self-end">
+          <Button type="submit" className="self-end">
             <FileDown className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -223,27 +219,20 @@ export default function PendingFollowupsPage() {
       <div className="grid gap-4">
         <Card className="overflow-hidden">
           <CardContent className="p-2 md:p-6 md:pt-0">
-            <div className="overflow-x-auto">
-              <Table className="min-w-[700px]">
+            <div>
+              <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Staff</TableHead>
-                    <TableHead>Team Leader</TableHead>
-                    <TableHead>Call</TableHead>
-                    <TableHead>Whatsapp</TableHead>
-                    <TableHead>
-                      <span className="lg:inline">Follow up </span>
-                      <span className="inline lg:hidden">F.U. </span>
-                      Date
-                    </TableHead>
-                    <TableHead>
-                      <span className="lg:inline">Follow up </span>
-                      <span className="inline lg:hidden">F.U. </span>
-                      Time
-                    </TableHead>
-                    <TableHead>History</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead className="px-2 py-1">Name</TableHead>
+                    <TableHead className="px-2 py-1">Staff</TableHead>
+                    <TableHead className="px-2 py-1">Team Leader</TableHead>
+                    <TableHead className="px-2 py-1 hidden md:table-cell">Call</TableHead>
+                    <TableHead className="px-2 py-1 hidden lg:table-cell">Whatsapp</TableHead>
+                    <TableHead className="px-2 py-1 hidden lg:table-cell">Date</TableHead>
+                    <TableHead className="px-2 py-1 hidden lg:table-cell">Time</TableHead>
+                    <TableHead className="px-2 py-1 hidden lg:table-cell">History</TableHead>
+                    <TableHead className="px-2 py-1 text-center md:hidden">More</TableHead>
+                    <TableHead className="px-2 py-1 text-center hidden md:table-cell">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -262,26 +251,50 @@ export default function PendingFollowupsPage() {
                   ) : (
                     leads.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium text-base md:text-sm">{user.name}</TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm">{user.assigned_to?.name}</TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm">{user.team_leader?.name}</TableCell>
-                        <TableCell className="text-base md:text-sm">
+                        <TableCell className="font-medium text-base md:text-sm px-2 py-1">{user.name}</TableCell>
+                        <TableCell className="whitespace-nowrap text-base md:text-sm px-2 py-1">{user.assigned_to?.name}</TableCell>
+                        <TableCell className="whitespace-nowrap text-base md:text-sm px-2 py-1">{user.team_leader?.name}</TableCell>
+                        <TableCell className="text-base md:text-sm hidden md:table-cell px-2 py-1">{
                           <a href={`tel:+91${user.call}`}><Phone className="h-4 w-4 text-green-500" /></a>
-                        </TableCell>
-                        <TableCell className="text-base md:text-sm">
+                        }</TableCell>
+                        <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">
                           <a href={`https://wa.me/+91${user.call}`} target="_blank" rel="noreferrer"><MessageSquare className="h-4 w-4 text-blue-500" /></a>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm">{user.follow_up_date || 'N/A'}</TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm">{user.follow_up_time || 'N/A'}</TableCell>
-                        <TableCell className="text-base md:text-sm">
+                        <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">{user.follow_up_date || 'N/A'}</TableCell>
+                        <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">{user.follow_up_time || 'N/A'}</TableCell>
+                        <TableCell className="text-base md:text-sm hidden lg:table-cell px-2 py-1">
                           <Link href={`/lead_history/${user.id}`}><History className="h-4 w-4 text-muted-foreground" /></Link>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center md:hidden px-2 py-1">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">More</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openDetailsModal(user)}>
+                                <Eye className="mr-2 h-4 w-4" /> View Details
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                        <TableCell className="text-center hidden md:table-cell px-2 py-1">
                           <div className="flex items-center justify-center gap-1 sm:gap-2">
+                        <TooltipProvider>
                             <Button variant="outline" size="sm" className="w-full text-center" onClick={() => openEditModal(user.id)}>
                               <span className="hidden lg:inline">Follow Up</span>
-                              <span className="inline lg:hidden">F.U.</span>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline lg:hidden">F.U.</span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Follow Up</p>
+                                </TooltipContent>
+                              </Tooltip>
                             </Button>
+                        </TooltipProvider>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -311,13 +324,13 @@ export default function PendingFollowupsPage() {
         </Card>
       </div>
 
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="w-[95vw] sm:max-w-md p-4 max-h-[90vh] flex flex-col">
+      <Dialog open={showModal} onOpenChange={setShowModal} >
+        <DialogContent className="w-[95vw] sm:max-w-md p-4 max-h-[90vh] flex flex-col rounded-md">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Leads Update</DialogTitle>
             <DialogDescription>Update the status and follow-up details for this lead.</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4 overflow-y-auto flex-1">
+          <div className="grid gap-4 p-4 overflow-y-auto flex-1 ">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
                <Select value={statusValue} onValueChange={setStatusValue}>
@@ -336,15 +349,15 @@ export default function PendingFollowupsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="followUpDate">
-                    <span className="hidden sm:inline">Follow Up</span><span className="sm:hidden">F.U.</span> Date
+                    <span className="hidden sm:inline"></span><span className="sm:hidden"></span> Date
                   </Label>
                   <Input id="followUpDate" type="date" value={followDate} onChange={(e) => setFollowDate(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                    <Label htmlFor="followUpTime">
-                    <span className="hidden sm:inline">Follow Up</span><span className="sm:hidden">F.U.</span> Time
+                    <span className="hidden sm:inline"></span><span className="sm:hidden"></span> Time
                   </Label>
-                  <Input id="followUpTime" type="time" value={followTime} onChange={(e) => setFollowTime(e.target.value)} />
+                  <Input id="followUpTime" type="time" value={followTime} onChange={(e) => setFollowTime(e.target.value)} className='p-1' />
                 </div>
               </div>
             )}
@@ -354,7 +367,7 @@ export default function PendingFollowupsPage() {
               <Textarea id="message" value={messageValue} onChange={(e) => setMessageValue(e.target.value)} placeholder="Enter a message or notes..."/>
             </div>
           </div>
-          <DialogFooter className="flex-shrink-0">
+          <DialogFooter className="flex-shrink-0 gap-2">
             <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
             <Button onClick={saveChanges}>Update Status</Button>
           </DialogFooter>
@@ -369,5 +382,6 @@ export default function PendingFollowupsPage() {
         />
       )}
     </div>
+    </TooltipProvider>
   );
 }

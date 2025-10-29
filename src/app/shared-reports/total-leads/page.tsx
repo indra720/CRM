@@ -16,7 +16,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, History, PlusCircle, User, Flag, Mail } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, History, PlusCircle, User, Flag, Mail, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
@@ -27,6 +27,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { DetailsDialog } from '@/components/details-dialog';
 
 
 type Lead = {
@@ -54,68 +55,101 @@ const mockLeads: Lead[] = [
     { id: 15, name: 'Samaira Iyer', call: '9876543224', status: 'Other Location' },
 ];
 
-export const columns: ColumnDef<Lead>[] = [
+  const columns: ColumnDef<Lead>[] = [
     {
         id: 'sn',
         header: 'S.N.',
         cell: ({ row }) => <div>{row.index + 1}</div>,
     },
-  {
-    accessorKey: 'name',
-    header: 'Name',
-    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
-  },
-  {
-    accessorKey: 'call',
-    header: 'Call',
-    cell: ({ row }) => (
-      <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
-        <Phone className="h-5 w-5 text-blue-500" />
-      </a>
-    ),
-  },
-  {
-    id: 'whatsapp',
-    header: 'Whatsapp',
-    cell: ({ row }) => (
-      <a
-        href={`https://wa.me/91${row.original.call}?text=Hello%20${row.original.name}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block hover:scale-110 transition-transform"
-      >
-        <MessageSquare className="h-6 w-6 text-green-500" />
-      </a>
-    ),
-  },
-  {
-    accessorKey: 'status',
-    header: 'Change Status',
-    cell: ({ row }) => (
-        <DropdownMenu>
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    },
+    {
+      accessorKey: 'call',
+      header: 'Call',
+      cell: ({ row }) => (
+        <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
+          <Phone className="h-5 w-5 text-blue-500" />
+        </a>
+      ),
+    },
+    {
+      id: 'whatsapp',
+      header: 'Whatsapp',
+      cell: ({ row }) => (
+        <a
+          href={`https://wa.me/91${row.original.call}?text=Hello%20${row.original.name}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block hover:scale-110 transition-transform"
+        >
+          <MessageSquare className="h-6 w-6 text-green-500" />
+        </a>
+      ),
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: 'Change Status',
+      cell: ({ row }) => (
+          <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">{row.getValue('status')} ▼</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                  {["New", "Contacted", "Interested", "Not Interested", "Lost", "Visit"].map(option => (
+                  <DropdownMenuItem key={option} onSelect={() => console.log(`Changed to ${option}`)}>
+                      {option}
+                  </DropdownMenuItem>
+                  ))}
+              </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      id: 'history',
+      header: 'History',
+      cell: ({ row }) => (
+        <Button variant="ghost" size="icon">
+          <History className="h-5 w-5 text-muted-foreground" />
+        </Button>
+      ),
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      id: 'more',
+      header: '',
+      cell: ({ row }) => (
+        <div className="md:hidden"> {/* Only visible on small screens */}
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">{row.getValue('status')} ▼</Button>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">More</span>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                {["New", "Contacted", "Interested", "Not Interested", "Lost", "Visit"].map(option => (
-                <DropdownMenuItem key={option} onSelect={() => console.log(`Changed to ${option}`)}>
-                    {option}
-                </DropdownMenuItem>
-                ))}
+              <DropdownMenuItem onClick={() => {
+                setSelectedLead(row.original);
+                setIsDetailsOpen(true);
+              }}>
+                <Eye className="mr-2 h-4 w-4" /> View Details
+              </DropdownMenuItem>
             </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-  {
-    id: 'history',
-    header: 'History',
-    cell: ({ row }) => (
-      <Button variant="ghost" size="icon">
-        <History className="h-5 w-5 text-muted-foreground" />
-      </Button>
-    ),
-  }
-];
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ];
 
 
 const TotalLeadsPage = () => {
@@ -124,6 +158,9 @@ const TotalLeadsPage = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [addLeadModalOpen, setAddLeadModalOpen] = useState(false);
   const { toast } = useToast();
+
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null); // New state
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false); // New state
 
   const [formData, setFormData] = useState({
     name: "",
@@ -196,104 +233,92 @@ const TotalLeadsPage = () => {
   return (
     <div className="space-y-6">
         <h1 className="text-2xl font-bold">Leads</h1>
-        <Card className="shadow-lg rounded-2xl">
-            <CardContent className="p-6 space-y-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon">
-                            <Search className="h-4 w-4" />
+        <div className="grid gap-4">
+            <Card className="overflow-hidden">
+                <CardContent className="p-2 md:p-6 md:pt-0">
+                    <div className="flex flex-col sm:flex-row gap-4 my-4">
+                        <div className="flex items-center gap-2">
+                            <div className="relative w-full max-w-sm">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search leads..."
+                                    value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+                                    onChange={(event) =>
+                                        table.getColumn('name')?.setFilterValue(event.target.value)
+                                    }
+                                    className="pl-10"
+                                />
+                            </div>
+                        </div>
+                        <Button onClick={() => setAddLeadModalOpen(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add Lead
                         </Button>
-                        <Input
-                            placeholder="Search..."
-                            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-                            onChange={(event) =>
-                                table.getColumn('name')?.setFilterValue(event.target.value)
-                            }
-                            className="w-full sm:w-auto"
-                        />
                     </div>
-                    <Button onClick={() => setAddLeadModalOpen(true)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Lead
-                    </Button>
-                </div>
-                <div className="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => {
-                                        return (
-                                            <TableHead key={header.id} className="text-center">
-                                                {header.isPlaceholder
-                                                    ? null
-                                                    : flexRender(
-                                                        header.column.columnDef.header,
-                                                        header.getContext()
-                                                    )}
-                                            </TableHead>
-                                        );
-                                    })}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows?.length ? (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow
-                                        key={row.id}
-                                        data-state={row.getIsSelected() && 'selected'}
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} className="text-center">
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        ))}
+                    <div className="overflow-x-auto">
+                        <Table className="min-w-[700px]">
+                            <TableHeader>
+                                {table.getHeaderGroups().map((headerGroup) => (
+                                    <TableRow key={headerGroup.id}>
+                                        {headerGroup.headers.map((header) => {
+                                            return (
+                                                <TableHead key={header.id}>
+                                                    {header.isPlaceholder
+                                                        ? null
+                                                        : flexRender(
+                                                            header.column.columnDef.header,
+                                                            header.getContext()
+                                                        )}
+                                                </TableHead>
+                                            );
+                                        })}
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                                        No results.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-                <div className="flex items-center justify-center">
-                    <Pagination>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
-                                >
-                                <ChevronsLeft className="h-4 w-4" />
-                                </Button>
-                            </PaginationItem>
-                             <PaginationItem>
-                                <PaginationLink isActive>
-                                {table.getState().pagination.pageIndex + 1}
-                                </PaginationLink>
-                            </PaginationItem>
-                            <PaginationItem>
-                                <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
-                                >
-                                <ChevronsRight className="h-4 w-4" />
-                                </Button>
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                </div>
-            </CardContent>
-        </Card>
+                                ))}
+                            </TableHeader>
+                            <TableBody>
+                                {table.getRowModel().rows?.length ? (
+                                    table.getRowModel().rows.map((row) => (
+                                        <TableRow
+                                            key={row.id}
+                                            data-state={row.getIsSelected() && 'selected'}
+                                        >
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableCell key={cell.id}>
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                                            No results.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <div className="p-4 border-t">
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <PaginationLink isActive>
+                                        {table.getState().pagination.pageIndex + 1}
+                                    </PaginationLink>
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
 
         <Dialog open={addLeadModalOpen} onOpenChange={setAddLeadModalOpen}>
             <DialogContent className="w-[95vw] sm:max-w-2xl">
@@ -386,6 +411,20 @@ const TotalLeadsPage = () => {
                 </form>
             </DialogContent>
         </Dialog>
+
+        {selectedLead && (
+          <DetailsDialog
+            title="Lead Details"
+            description={`Full details for ${selectedLead.name}.`}
+            details={[
+              { label: "Name", value: selectedLead.name, icon: User },
+              { label: "Mobile", value: selectedLead.call, icon: Phone },
+              { label: "Status", value: selectedLead.status, icon: Flag },
+            ]}
+            open={isDetailsOpen}
+            onOpenChange={setIsDetailsOpen}
+          />
+        )}
     </div>
   );
 };
