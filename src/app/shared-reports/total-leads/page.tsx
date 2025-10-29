@@ -16,7 +16,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, History, PlusCircle, User, Flag, Mail } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, History, PlusCircle, User, Flag, Mail, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
@@ -27,6 +27,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { DetailsDialog } from '@/components/details-dialog';
 
 
 type Lead = {
@@ -54,68 +55,101 @@ const mockLeads: Lead[] = [
     { id: 15, name: 'Samaira Iyer', call: '9876543224', status: 'Other Location' },
 ];
 
-export const columns: ColumnDef<Lead>[] = [
+  const columns: ColumnDef<Lead>[] = [
     {
         id: 'sn',
         header: 'S.N.',
         cell: ({ row }) => <div>{row.index + 1}</div>,
     },
-  {
-    accessorKey: 'name',
-    header: 'Name',
-    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
-  },
-  {
-    accessorKey: 'call',
-    header: 'Call',
-    cell: ({ row }) => (
-      <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
-        <Phone className="h-5 w-5 text-blue-500" />
-      </a>
-    ),
-  },
-  {
-    id: 'whatsapp',
-    header: 'Whatsapp',
-    cell: ({ row }) => (
-      <a
-        href={`https://wa.me/91${row.original.call}?text=Hello%20${row.original.name}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block hover:scale-110 transition-transform"
-      >
-        <MessageSquare className="h-6 w-6 text-green-500" />
-      </a>
-    ),
-  },
-  {
-    accessorKey: 'status',
-    header: 'Change Status',
-    cell: ({ row }) => (
-        <DropdownMenu>
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    },
+    {
+      accessorKey: 'call',
+      header: 'Call',
+      cell: ({ row }) => (
+        <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
+          <Phone className="h-5 w-5 text-blue-500" />
+        </a>
+      ),
+    },
+    {
+      id: 'whatsapp',
+      header: 'Whatsapp',
+      cell: ({ row }) => (
+        <a
+          href={`https://wa.me/91${row.original.call}?text=Hello%20${row.original.name}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block hover:scale-110 transition-transform"
+        >
+          <MessageSquare className="h-6 w-6 text-green-500" />
+        </a>
+      ),
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: 'Change Status',
+      cell: ({ row }) => (
+          <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">{row.getValue('status')} ▼</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                  {["New", "Contacted", "Interested", "Not Interested", "Lost", "Visit"].map(option => (
+                  <DropdownMenuItem key={option} onSelect={() => console.log(`Changed to ${option}`)}>
+                      {option}
+                  </DropdownMenuItem>
+                  ))}
+              </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      id: 'history',
+      header: 'History',
+      cell: ({ row }) => (
+        <Button variant="ghost" size="icon">
+          <History className="h-5 w-5 text-muted-foreground" />
+        </Button>
+      ),
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      id: 'more',
+      header: '',
+      cell: ({ row }) => (
+        <div className="md:hidden"> {/* Only visible on small screens */}
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">{row.getValue('status')} ▼</Button>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">More</span>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                {["New", "Contacted", "Interested", "Not Interested", "Lost", "Visit"].map(option => (
-                <DropdownMenuItem key={option} onSelect={() => console.log(`Changed to ${option}`)}>
-                    {option}
-                </DropdownMenuItem>
-                ))}
+              <DropdownMenuItem onClick={() => {
+                setSelectedLead(row.original);
+                setIsDetailsOpen(true);
+              }}>
+                <Eye className="mr-2 h-4 w-4" /> View Details
+              </DropdownMenuItem>
             </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-  {
-    id: 'history',
-    header: 'History',
-    cell: ({ row }) => (
-      <Button variant="ghost" size="icon">
-        <History className="h-5 w-5 text-muted-foreground" />
-      </Button>
-    ),
-  }
-];
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ];
 
 
 const TotalLeadsPage = () => {
@@ -124,6 +158,9 @@ const TotalLeadsPage = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [addLeadModalOpen, setAddLeadModalOpen] = useState(false);
   const { toast } = useToast();
+
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null); // New state
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false); // New state
 
   const [formData, setFormData] = useState({
     name: "",
@@ -374,6 +411,20 @@ const TotalLeadsPage = () => {
                 </form>
             </DialogContent>
         </Dialog>
+
+        {selectedLead && (
+          <DetailsDialog
+            title="Lead Details"
+            description={`Full details for ${selectedLead.name}.`}
+            details={[
+              { label: "Name", value: selectedLead.name, icon: User },
+              { label: "Mobile", value: selectedLead.call, icon: Phone },
+              { label: "Status", value: selectedLead.status, icon: Flag },
+            ]}
+            open={isDetailsOpen}
+            onOpenChange={setIsDetailsOpen}
+          />
+        )}
     </div>
   );
 };

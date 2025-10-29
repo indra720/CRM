@@ -17,13 +17,14 @@ import {
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, Eye} from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, Eye, MoreVertical, User, Flag, Calendar, Briefcase, Users, Clock, Tag } from 'lucide-react'; // Added MoreVertical, User, Flag, Calendar, Briefcase, Users, Clock, Tag
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'; // Added DropdownMenu imports
 
 type Lead = {
   id: number;
@@ -127,6 +128,7 @@ const VisitLeadsPage = () => {
           <MessageSquare className="h-6 w-6 text-green-500" />
         </a>
       ),
+      meta: { className: "hidden md:table-cell" },
     },
     {
       accessorKey: 'status',
@@ -142,18 +144,31 @@ const VisitLeadsPage = () => {
         );
       },
       cell: ({ row }) => <div className="capitalize">{row.getValue('status')}</div>,
-      meta: { className: "hidden sm:table-cell" },
+      meta: { className: "hidden md:table-cell" },
     },
     {
-      id: 'actions',
-      header: 'Actions',
+      id: 'more',
+      header: '',
       cell: ({ row }) => (
-        <Button variant="ghost" size="icon" onClick={() => openDetailsModal(row.original)}>
-          <Eye className="h-4 w-4" />
-          <span className="sr-only">View Details</span>
-        </Button>
+        <div className="md:hidden"> {/* Only visible on small screens */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => {
+                openDetailsModal(row.original);
+              }}>
+                <Eye className="mr-2 h-4 w-4" /> View Details
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       ),
-    }
+    },
   ];
   const table = useReactTable({
     data,
@@ -197,14 +212,14 @@ const VisitLeadsPage = () => {
                             />
                         </div>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div>
                         <Table className="min-w-[700px]">
                             <TableHeader>
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map((header) => {
                                             return (
-                                                <TableHead key={header.id}>
+                                                <TableHead key={header.id} className={cn("px-2 py-1", header.column.columnDef.meta?.className)}>
                                                     {header.isPlaceholder
                                                         ? null
                                                         : flexRender(
@@ -225,7 +240,7 @@ const VisitLeadsPage = () => {
                                             data-state={row.getIsSelected() && 'selected'}
                                         >
                                             {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id}>
+                                                <TableCell key={cell.id} className={cn("px-2 py-1", cell.column.columnDef.meta?.className)}>
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                 </TableCell>
                                             ))}

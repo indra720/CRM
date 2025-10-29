@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, ChevronDown, PanelLeft, PanelRight } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useState, useEffect } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -171,9 +172,9 @@ export function SuperAdminSidebar({ isSidebarOpen, setSidebarOpen, isCollapsed, 
   const SidebarHeader = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean, setIsCollapsed: (collapsed: boolean) => void }) => (
     <div className={cn("flex items-center h-20 border-b border-sidebar-border", isCollapsed ? "justify-center" : "px-4 justify-between")}>
       <div className="flex items-center">
-        <Avatar className="h-10 w-10 bg-primary text-primary-foreground">
-          <AvatarFallback>SA</AvatarFallback>
-        </Avatar>
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="bg-orange-500 text-white">SA</AvatarFallback>
+          </Avatar>
         {!isCollapsed && <h1 className="ml-3 text-2xl font-bold text-white">Super Admin</h1>}
       </div>
       {!isCollapsed && (
@@ -196,7 +197,19 @@ export function SuperAdminSidebar({ isSidebarOpen, setSidebarOpen, isCollapsed, 
     </>
   );
 
-  const SidebarFooter = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean, setIsCollapsed: (collapsed: boolean) => void }) => (
+  const SidebarFooter = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean, setIsCollapsed: (collapsed: boolean) => void }) => {
+    const [userEmail, setUserEmail] = useState('super@nexus.com'); // Default or placeholder
+
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const email = localStorage.getItem('userEmail'); // Assuming email is stored as 'userEmail'
+        if (email) {
+          setUserEmail(email);
+        }
+      }
+    }, []);
+
+    return (
       <div className={cn("p-4 border-t border-sidebar-border", isCollapsed ? "flex flex-col items-center" : "")}>
           {isCollapsed && (
              <Button onClick={() => setIsCollapsed(false)} variant="ghost" className="hidden lg:flex justify-center w-full mb-2 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground">
@@ -207,14 +220,14 @@ export function SuperAdminSidebar({ isSidebarOpen, setSidebarOpen, isCollapsed, 
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center cursor-pointer group w-full">
+              <div className="flex items-center cursor-pointer group w-full focus-visible:ring-0 focus-visible:ring-offset-0">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback>SA</AvatarFallback>
                 </Avatar>
                 {!isCollapsed && (
                   <div className="ml-3">
                     <p className="text-sm font-medium">Super Admin</p>
-                    <p className="text-xs text-muted-foreground group-hover:text-sidebar-foreground/80">super@nexus.com</p>
+                    <p className="text-xs text-muted-foreground group-hover:text-sidebar-foreground/80">{userEmail}</p>
                   </div>
                 )}
               </div>
@@ -224,7 +237,7 @@ export function SuperAdminSidebar({ isSidebarOpen, setSidebarOpen, isCollapsed, 
                     <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">Super Admin</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                        super@nexus.com
+                        {userEmail}
                         </p>
                     </div>
                 </DropdownMenuLabel>
@@ -241,7 +254,8 @@ export function SuperAdminSidebar({ isSidebarOpen, setSidebarOpen, isCollapsed, 
             </DropdownMenuContent>
           </DropdownMenu>
       </div>
-  );
+    );
+  };
 
 
   return (

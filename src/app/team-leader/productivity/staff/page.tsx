@@ -116,8 +116,9 @@ const ProductivityStaffPage = () => {
       <Card className="shadow-lg rounded-2xl">
         <CardContent className="p-0">
             <div className="overflow-x-auto w-full">
-                <Table>
-                <TableHeader>
+                <div className="max-h-[400px] overflow-y-auto">
+                    <Table className="min-w-[1200px]">
+                    <TableHeader className="sticky top-0 z-10 bg-card">
                     <TableRow>
                     <TableHead>SN</TableHead>
                     <TableHead>Name</TableHead>
@@ -130,9 +131,8 @@ const ProductivityStaffPage = () => {
                     <TableHead className="text-center">Interested %</TableHead>
                     <TableHead className="text-center">Visit %</TableHead>
                     </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.map((row, i) => (
+                                                                </TableHeader>
+                                                        <TableBody>                    {data.map((row, i) => (
                     <TableRow key={row.id}>
                         <TableCell>{i + 1}</TableCell>
                         <TableCell className="font-medium">{row.name}</TableCell>
@@ -147,7 +147,7 @@ const ProductivityStaffPage = () => {
                     </TableRow>
                     ))}
                 </TableBody>
-                <TableFooter>
+                <TableFooter className="sticky bottom-0 z-10 bg-card">
                     <TableRow className="bg-muted/50 font-semibold">
                     <TableCell>Total</TableCell>
                     <TableCell className="text-center">{data.length}</TableCell>
@@ -166,6 +166,7 @@ const ProductivityStaffPage = () => {
                     </TableRow>
                 </TableFooter>
                 </Table>
+                </div>
             </div>
         </CardContent>
     </Card>

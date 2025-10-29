@@ -16,11 +16,13 @@ import {
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, MoreVertical, Eye, User, Flag, Calendar } from 'lucide-react'; // Added MoreVertical, Eye, User, Flag, Calendar
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'; // Added DropdownMenu imports
+import { DetailsDialog } from '@/components/details-dialog'; // Added DetailsDialog
 
 type Lead = {
   id: number;
@@ -36,71 +38,107 @@ const mockLeads: Lead[] = [
     { id: 9, name: 'Reyansh Mehra', call: '9876543218', status: 'Interested', updated_date: 'Oct. 16, 2025, 7:07 a.m.' },
 ];
 
-export const columns: ColumnDef<Lead>[] = [
-  {
-    accessorKey: 'name',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+  const columns: ColumnDef<Lead>[] = [
+    {
+      accessorKey: 'name',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
     },
-    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
-  },
-  {
-    accessorKey: 'call',
-    header: 'Call',
-    cell: ({ row }) => (
-      <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
-        <Phone className="h-5 w-5 text-blue-500" />
-      </a>
-    ),
-  },
-  {
-    accessorKey: 'whatsapp',
-    header: 'Whatsapp',
-    cell: ({ row }) => (
-      <a
-        href={`https://wa.me/${row.getValue('call')}?text=Hello%20${row.original.name}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-block hover:scale-110 transition-transform"
-      >
-        <MessageSquare className="h-6 w-6 text-green-500" />
-      </a>
-    ),
-  },
-  {
-    accessorKey: 'status',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Status
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+    {
+      accessorKey: 'call',
+      header: 'Call',
+      cell: ({ row }) => (
+        <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
+          <Phone className="h-5 w-5 text-blue-500" />
+        </a>
+      ),
     },
-    cell: ({ row }) => <div className="capitalize">{row.getValue('status')}</div>,
-  },
-  {
-    accessorKey: 'updated_date',
-    header: 'Date & Time',
-  }
-];
+    {
+      accessorKey: 'whatsapp',
+      header: 'Whatsapp',
+      cell: ({ row }) => (
+        <a
+          href={`https://wa.me/${row.getValue('call')}?text=Hello%20${row.original.name}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block hover:scale-110 transition-transform"
+        >
+          <MessageSquare className="h-6 w-6 text-green-500" />
+        </a>
+      ),
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Status
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => <div className="capitalize">{row.getValue('status')}</div>,
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      accessorKey: 'updated_date',
+      header: 'Date & Time',
+      meta: {
+        className: 'hidden md:table-cell',
+      },
+    },
+    {
+      id: 'more',
+      header: '',
+      cell: ({ row }) => (
+        <div className="md:hidden"> {/* Only visible on small screens */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => {
+                setSelectedLead(row.original);
+                setIsDetailsOpen(true);
+              }}>
+                <Eye className="mr-2 h-4 w-4" /> View Details
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ];
 
 
 const InterestedLeadsPage = () => {
   const [data] = useState(mockLeads);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null); // New state
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false); // New state
 
   const table = useReactTable({
     data,
@@ -151,7 +189,7 @@ const InterestedLeadsPage = () => {
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map((header) => {
                                             return (
-                                                <TableHead key={header.id}>
+                                                <TableHead key={header.id} className={header.column.columnDef.meta?.className}>
                                                     {header.isPlaceholder
                                                         ? null
                                                         : flexRender(
@@ -172,7 +210,7 @@ const InterestedLeadsPage = () => {
                                             data-state={row.getIsSelected() && 'selected'}
                                         >
                                             {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id}>
+                                                <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                 </TableCell>
                                             ))}
@@ -208,6 +246,20 @@ const InterestedLeadsPage = () => {
                 </CardContent>
             </Card>
         </div>
+        {selectedLead && (
+          <DetailsDialog
+            title="Lead Details"
+            description={`Full details for ${selectedLead.name}.`}
+            details={[
+              { label: "Name", value: selectedLead.name, icon: User },
+              { label: "Mobile", value: selectedLead.call, icon: Phone },
+              { label: "Status", value: selectedLead.status, icon: Flag },
+              { label: "Updated Date", value: selectedLead.updated_date, icon: Calendar },
+            ]}
+            open={isDetailsOpen}
+            onOpenChange={setIsDetailsOpen}
+          />
+        )}
     </div>
   );
 };

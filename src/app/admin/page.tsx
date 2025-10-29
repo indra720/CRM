@@ -2,7 +2,7 @@
 
 import { BarChart, PieChart } from "@/components/dashboard/custom-charts";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Users, Globe, Briefcase } from "lucide-react";
 import Link from 'next/link';
 

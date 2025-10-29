@@ -162,7 +162,6 @@ const LoginPage = () => {
     username: "",
     password: "",
     rememberMe: false,
-    role: "admin",
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -233,10 +232,6 @@ const LoginPage = () => {
     });
   };
 
-  const handleLoginSelectChange = (value: string) => {
-    setLoginData({ ...loginData, role: value });
-  };
-
   const handleRegisterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -268,16 +263,19 @@ const LoginPage = () => {
             router.push('/superadmin/dashboard');
             break;
         case "admin":
-            router.push('/admin');
+            router.push('/admin/users/team-leader');
             break;
         case "team-leader":
-            router.push('/team-leader');
+            router.push('/team-leader/productivity/staff');
             break;
         case "staff":
             router.push('/staff');
             break;
+        case "freelancer":
+            router.push('/freelancer/dashboard'); // Assuming /freelancer/dashboard for freelancer
+            break;
         default:
-            router.push('/admin');
+            router.push('/login'); 
             break;
     }
   }
@@ -285,29 +283,114 @@ const LoginPage = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate API call
-    if(typeof window !== 'undefined') {
-      localStorage.setItem('userRole', loginData.role);
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/accounts/apilogin/`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: loginData.username,
+          password: loginData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.status) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('authToken', data.data.token_detail);
+          // Determine role from API response
+          let userRole = 'superadmin'; // Default to superadmin if no other role matches
+          if (data.data.is_admin) {
+            userRole = 'admin';
+          } else if (data.data.is_team_leader) {
+            userRole = 'team-leader';
+          } else if (data.data.is_staff_new) {
+            userRole = 'staff';
+          } else if (data.data.is_freelancer) {
+            userRole = 'freelancer';
+          }
+          localStorage.setItem('userRole', userRole);
+          localStorage.setItem('userEmail', data.data.email); // Store user's email
+          handleRedirect(userRole);
+        }
+        toast({
+          title: "Login Successful!",
+          description: data.message,
+          className: 'bg-green-500 text-white'
+        });
+      } else {
+        toast({
+          title: "Login Failed",
+          description: data.message || "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Login API error:", error);
+      toast({
+        title: "Login Error",
+        description: "Could not connect to the server. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-    toast({
-      title: "Login Successful!",
-      description: `Redirecting to ${loginData.role} dashboard...`,
-    });
-    handleRedirect(loginData.role);
   };
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate API call
-    console.log("Register submitted", registerData);
-    setIsLoading(false);
-    toast({
-      title: "Registration Submitted",
-      description: "Your registration is being processed.",
+
+    const formData = new FormData();
+    Object.keys(registerData).forEach(key => {
+        const value = registerData[key as keyof typeof registerData];
+        if (value instanceof File) {
+            formData.append(key, value);
+        } else if (value !== null && value !== undefined) {
+            formData.append(key, String(value));
+        }
     });
-    setIsRegisterOpen(false);
+
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const REGISTER_API_URL = `${API_BASE_URL}/accounts/register/`;
+
+    try {
+        const response = await fetch(REGISTER_API_URL, {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.status) {
+            toast({
+                title: "Registration Successful!",
+                description: data.message,
+                className: 'bg-green-500 text-white'
+            });
+            setIsRegisterOpen(false);
+        } else {
+            toast({
+                title: "Registration Failed",
+                description: data.message || "An unexpected error occurred.",
+                variant: "destructive",
+            });
+        }
+    } catch (error) {
+        console.error("Registration API error:", error);
+        toast({
+            title: "Registration Error",
+            description: "Could not connect to the server. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
   
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -442,20 +525,7 @@ const LoginPage = () => {
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Select value={loginData.role} onValueChange={handleLoginSelectChange}>
-                        <SelectTrigger id="role" className="h-11 rounded-lg">
-                            <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="superadmin">Super Admin</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="team-leader">Team Leader</SelectItem>
-                            <SelectItem value="staff">Staff</SelectItem>
-                        </SelectContent>
-                      </Select>
-                  </div>
+
 
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -689,8 +759,7 @@ const LoginPage = () => {
                     name="profileImage"
                     type="file"
                     icon={Camera}
-                    onChange={handleRegisterChange}
-                  />
+                    onChange={handleRegisterChange} value={""}                  />
                   <InputField
                     id="reg-degree"
                     label="Degree"

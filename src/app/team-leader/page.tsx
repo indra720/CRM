@@ -52,7 +52,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const kpiData = [
-    { title: 'Total Staff', value: 1, icon: Users, color: 'text-blue-500', link: '/team-leader/users/staff' },
+    { title: 'Total Staff', value: 1, icon: Users, color: 'text-blue-500', link: '/team-leader/productivity/staff' },
     { title: 'Login Staff', value: 0, icon: LogIn, color: 'text-green-500' },
     { title: 'Log-out', value: 1, icon: LogOut, color: 'text-red-500' },
     { title: 'Associate staff', value: 1, icon: UserCheck, color: 'text-purple-500' },
