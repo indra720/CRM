@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -18,43 +18,51 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Search } from 'lucide-react';
-
-// Mock IT Staff Data
-const mockUsers = [
-  {
-    id: 1,
-    name: 'Amit Kumar',
-    mobile: '9876543210',
-    active: true,
-  },
-  {
-    id: 2,
-    name: 'Sunita Sharma',
-    mobile: '8765432109',
-    active: false,
-  },
-  {
-    id: 3,
-    name: 'Rajesh Singh',
-    mobile: '9123456780',
-    active: true,
-  },
-];
+} from "@/components/ui/table";
+import { Search } from "lucide-react";
+import { AttendanceDialog } from "./attendance-dialog";
 
 export default function ItStaffPage() {
   const [users, setUsers] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
+  const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(
+    null
+  );
+  const fetchUsers = async () => {
+    const token = localStorage.getItem("authToken");
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/it-staff/`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!response.ok) {
+        console.error("Failed to fetch IT staff", response.status);
+        return;
+      }
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error("Error fetching IT staff:", error);
+    }
+  };
 
   useEffect(() => {
-    setUsers(mockUsers);
+    // setUsers(mockUsers);
+    fetchUsers();
   }, []);
 
   const handleToggle = (id: number) => {
     setUsers((prev) =>
       prev.map((user) =>
-        user.id === id ? { ...user, active: !user.active } : user
+        user.staff_id === id ? { ...user, active: !user.active } : user
       )
     );
   };
@@ -94,27 +102,47 @@ export default function ItStaffPage() {
                 <TableRow>
                   <TableHead className="text-base md:text-sm">SR. NO</TableHead>
                   <TableHead className="text-base md:text-sm">Name</TableHead>
-                  <TableHead className="text-base md:text-sm">Mobile No</TableHead>
-                  <TableHead className="text-center text-base md:text-sm">Active / Non-Active</TableHead>
-                  <TableHead className="text-center text-base md:text-sm">Attendance</TableHead>
+                  <TableHead className="text-base md:text-sm">
+                    Mobile No
+                  </TableHead>
+                  <TableHead className="text-center text-base md:text-sm">
+                    Active / Non-Active
+                  </TableHead>
+                  <TableHead className="text-center text-base md:text-sm">
+                    Attendance
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user, index) => (
+                {users.length > 0 ? (
+                  users.map((user, index) => (
                     <TableRow key={user.id}>
-                      <TableCell className="text-base md:text-sm">{index + 1}</TableCell>
-                      <TableCell className="font-medium text-base md:text-sm">{user.name}</TableCell>
-                      <TableCell className="text-base md:text-sm">{user.mobile}</TableCell>
+                      <TableCell className="text-base md:text-sm">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="font-medium text-base md:text-sm">
+                        {user.name}
+                      </TableCell>
+                      <TableCell className="text-base md:text-sm">
+                        {user.mobile}
+                      </TableCell>
                       <TableCell className="text-center">
                         <Switch
                           checked={user.active}
-                          onCheckedChange={() => handleToggle(user.id)}
+                          onCheckedChange={() => handleToggle(user.staff_id)}
                           aria-label={`Toggle status for ${user.name}`}
                         />
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUserId(user.id);
+                            setSelectedUserEmail(user.email); // ✅ YE BHI ADD KARO
+                            setIsAttendanceDialogOpen(true);
+                          }}
+                        >
                           Attendance
                         </Button>
                       </TableCell>
@@ -135,6 +163,13 @@ export default function ItStaffPage() {
           </div>
         </CardContent>
       </Card>
+
+      <AttendanceDialog
+        userId={selectedUserId}
+        userEmail={selectedUserEmail} // ✅ YE ADD KARO
+        isOpen={isAttendanceDialogOpen}
+        onClose={() => setIsAttendanceDialogOpen(false)}
+      />
     </div>
   );
 }

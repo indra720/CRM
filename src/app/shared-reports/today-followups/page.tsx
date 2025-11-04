@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from 'react';
 // Force re-save for DialogClose error
@@ -35,7 +35,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Loader2, Phone, MessageSquare, History, Calendar, FileDown, ArrowLeft, Eye, User, Briefcase, Users, Clock, Tag, MoreVertical } from 'lucide-react';
+import { Search, Loader2, Phone, MessageSquare, History, Calendar, FileDown, ArrowLeft, Briefcase, Users, Clock, Tag, MoreVertical, Plus, Minus } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -71,53 +72,13 @@ const mockSingleLead = {
     team_leader: { name: 'Priya' },
 };
 
-
-const ReviewDetailItem = ({ label, value, icon: Icon }: { label: string, value: string | undefined | null, icon?: React.ElementType }) => (
-    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 border-b border-border-200 last:border-b-0 hover:bg-accent/50 transition-colors duration-200">
-        <p className="text-sm font-medium text-muted-foreground flex items-center sm:w-1/2">
-            {Icon && <Icon className="h-4 w-4 mr-2 text-primary" />}
-            {label}
-        </p>
-        <p className="font-semibold text-foreground sm:w-1/2 sm:text-right mt-1 sm:mt-0">{value || 'N/A'}</p>
-    </div>
-);
-
-const LeadDetailsDialog = ({ lead, open, onOpenChange }: { lead: any, open: boolean, onOpenChange: (open: boolean) => void }) => {
-    if (!lead) return null;
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[95vw] max-w-lg sm:max-w-2xl bg-background shadow-2xl rounded-xl p-4 border border-border overflow-hidden max-h-[90vh] flex flex-col">
-                <DialogHeader className="p-6 pb-4 text-center bg-muted/20 border-b border-border flex-shrink-0">
-                    <DialogTitle className="text-2xl font-bold text-foreground">Lead Details</DialogTitle>
-                    <DialogDescription className="text-muted-foreground">Comprehensive details for <span className="font-semibold">{lead.name}</span>.</DialogDescription>
-                </DialogHeader>
-                <div className="p-4 overflow-y-auto custom-scrollbar flex-1">
-                    <ReviewDetailItem label="Name" value={lead.name} icon={User} />
-                    <ReviewDetailItem label="Assigned To" value={lead.assigned_to?.name} icon={Briefcase} />
-                    <ReviewDetailItem label="Team Leader" value={lead.team_leader?.name} icon={Users} />
-                    <ReviewDetailItem label="Call" value={lead.call} icon={Phone} />
-                    <ReviewDetailItem label="Follow Up Date" value={lead.follow_up_date} icon={Calendar} />
-                    <ReviewDetailItem label="Follow Up Time" value={lead.follow_up_time} icon={Clock} />
-                </div>
-                <DialogFooter className="p-4 border-t border-border bg-muted/20 rounded-b-xl flex-row justify-end gap-2 flex-shrink-0">
-                    <DialogClose asChild>
-                        <Button type="button" variant="default" className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white">
-                            Close
-                        </Button>
-                    </DialogClose>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
 export default function TodayFollowupsPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [leads, setLeads] = useState<any[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
 
   const [showModal, setShowModal] = useState(false);
   const [editingLead, setEditingLead] = useState<any | null>(null);
@@ -127,8 +88,9 @@ export default function TodayFollowupsPage() {
   const [followTime, setFollowTime] = useState('');
   const { toast } = useToast();
 
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedLeadDetails, setSelectedLeadDetails] = useState<any | null>(null);
+  const toggleRow = (rowId: number) => {
+    setExpandedRowId(expandedRowId === rowId ? null : rowId);
+  };
 
   async function fetchLeads() {
     setLoading(true);
@@ -155,11 +117,6 @@ export default function TodayFollowupsPage() {
     setFollowTime(data.follow_up_time || '');
     setShowModal(true);
   }
-
-  const openDetailsModal = (lead: any) => {
-    setSelectedLeadDetails(lead);
-    setShowDetailsModal(true);
-  };
 
   async function saveChanges() {
     if (!editingLead) return;
@@ -189,7 +146,7 @@ export default function TodayFollowupsPage() {
       </div>
 
       <div className="space-y-4">
-        <form className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end max-w-3xl">
+        <form className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end">
           <div className="space-y-2">
             <Label htmlFor="start_date">Start Date</Label>
             <Input id="start_date" name="start_date" type="text" placeholder="mm/dd/yyyy" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => {if (!e.target.value) e.target.type = 'text'}} />
@@ -223,81 +180,126 @@ export default function TodayFollowupsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12 text-center lg:hidden">S.N.</TableHead>
                     <TableHead className="px-2 py-1">Name</TableHead>
                     <TableHead className="px-2 py-1">Staff</TableHead>
                     <TableHead className="px-2 py-1">Team Leader</TableHead>
-                    <TableHead className="px-2 py-1 hidden md:table-cell">Call</TableHead>
+                    <TableHead className="px-2 py-1 hidden lg:table-cell">Call</TableHead>
                     <TableHead className="px-2 py-1 hidden lg:table-cell">Whatsapp</TableHead>
                     <TableHead className="px-2 py-1 hidden lg:table-cell">Date</TableHead>
                     <TableHead className="px-2 py-1 hidden lg:table-cell">Time</TableHead>
                     <TableHead className="px-2 py-1 hidden lg:table-cell">History</TableHead>
-                    <TableHead className="px-2 py-1 text-center md:hidden">More</TableHead>
                     <TableHead className="px-2 py-1 text-center hidden md:table-cell">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-24 text-center">
+                      <TableCell colSpan={10} className="h-24 text-center">
                         <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
                       </TableCell>
                     </TableRow>
                   ) : leads.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-24 text-center">
+                      <TableCell colSpan={10} className="h-24 text-center">
                         No records found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    leads.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium text-base md:text-sm px-2 py-1">{user.name}</TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm px-2 py-1">{user.assigned_to?.name}</TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm px-2 py-1">{user.team_leader?.name}</TableCell>
-                        <TableCell className="text-base md:text-sm hidden md:table-cell px-2 py-1">{
-                          <a href={`tel:+91${user.call}`}><Phone className="h-4 w-4 text-green-500" /></a>
-                        }</TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">
-                          <a href={`https://wa.me/+91${user.call}`} target="_blank" rel="noreferrer"><MessageSquare className="h-4 w-4 text-blue-500" /></a>
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">{user.follow_up_date || 'N/A'}</TableCell>
-                        <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">{user.follow_up_time || 'N/A'}</TableCell>
-                        <TableCell className="text-base md:text-sm hidden lg:table-cell px-2 py-1">
-                          <Link href={`/lead_history/${user.id}`}><History className="h-4 w-4 text-muted-foreground" /></Link>
-                        </TableCell>
-                        <TableCell className="text-center md:hidden px-2 py-1">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                                <span className="sr-only">More</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openDetailsModal(user)}>
-                                <Eye className="mr-2 h-4 w-4" /> View Details
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                        <TableCell className="text-center hidden md:table-cell px-2 py-1">
-                          <div className="flex items-center justify-center gap-1 sm:gap-2">
-                        <TooltipProvider>
-                            <Button variant="outline" size="sm" className="w-full text-center" onClick={() => openEditModal(user.id)}>
-                              <span className="hidden lg:inline">Follow Up</span>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="inline lg:hidden">F.U.</span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Follow Up</p>
-                                </TooltipContent>
-                              </Tooltip>
+                    leads.map((lead, index) => (
+                      <React.Fragment key={lead.id}>
+                        <TableRow className="hover:bg-muted/50 transition-colors">
+                          <TableCell className="w-12 lg:hidden text-center px-2 py-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => toggleRow(lead.id)}
+                            >
+                              {expandedRowId === lead.id ? <Minus className="h-4 w-4 text-green-400" /> : <Plus className="h-4 w-4 text-green-400" />}
                             </Button>
-                        </TooltipProvider>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                          </TableCell>
+                          <TableCell className="font-medium text-base md:text-sm px-2 py-1">{lead.name}</TableCell>
+                          <TableCell className="text-base md:text-sm px-2 py-1">{lead.assigned_to?.name}</TableCell>
+                          <TableCell className="text-base md:text-sm px-2 py-1">{lead.team_leader?.name}</TableCell>
+                          <TableCell className="text-base md:text-sm hidden lg:table-cell px-2 py-1">{
+                            <a href={`tel:+91${lead.call}`}><Phone className="h-4 w-4 text-green-500" /></a>
+                          }</TableCell>
+                          <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">
+                            <a href={`https://wa.me/+91${lead.call}`} target="_blank" rel="noreferrer"><MessageSquare className="h-4 w-4 text-blue-500" /></a>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">{lead.follow_up_date || 'N/A'}</TableCell>
+                          <TableCell className="whitespace-nowrap text-base md:text-sm hidden lg:table-cell px-2 py-1">{lead.follow_up_time || 'N/A'}</TableCell>
+                          <TableCell className="text-base md:text-sm hidden lg:table-cell px-2 py-1">
+                            <Link href={`/lead_history/${lead.id}`}><History className="h-4 w-4 text-muted-foreground" /></Link>
+                          </TableCell>
+                          <TableCell className="text-center hidden md:table-cell px-2 py-1">
+                            <div className="flex items-center justify-center gap-1 sm:gap-2">
+                              <TooltipProvider>
+                                  <Button variant="outline" size="sm" className="w-full text-center" onClick={() => openEditModal(lead.id)}>
+                                    <span className="hidden lg:inline">Follow Up</span>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="inline lg:hidden">F.U.</span>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Follow Up</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </Button>
+                              </TooltipProvider>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {expandedRowId === lead.id && (
+                          <TableRow className="lg:hidden">
+                            <TableCell colSpan={5} className="p-0">
+                              <div className="p-4 bg-gray-50">
+                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                  <div className="p-4 flex items-center gap-4 border-b border-gray-200">
+                                    <Avatar>
+                                      <AvatarImage src={`https://avatar.vercel.sh/${lead.name}.png`} alt={lead.name} />
+                                      <AvatarFallback>{lead.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <div className="text-lg font-bold">{lead.name}</div>
+                                      <div className="text-sm text-gray-500">{lead.assigned_to?.name}</div> {/* Using assigned_to name as a secondary detail */}
+                                    </div>
+                                  </div>
+                                  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex items-center">
+                                      <Phone className="h-4 w-4 mr-3 text-gray-500" />
+                                      <span className="text-sm">{lead.call}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <MessageSquare className="h-4 w-4 mr-3 text-gray-500" />
+                                      <a href={`https://wa.me/+91${lead.call}`} target="_blank" rel="noreferrer" className="text-sm">Whatsapp</a>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <Calendar className="h-4 w-4 mr-3 text-gray-500" />
+                                      <span className="text-sm">Follow Up Date: {lead.follow_up_date || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <Clock className="h-4 w-4 mr-3 text-gray-500" />
+                                      <span className="text-sm">Follow Up Time: {lead.follow_up_time || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <History className="h-4 w-4 mr-3 text-gray-500" />
+                                      <Link href={`/lead_history/${lead.id}`} className="text-sm">View History</Link>
+                                    </div>
+                                    <div className="flex items-center justify-end">
+                                      <Button size="sm" onClick={() => openEditModal(lead.id)}>
+                                        Follow Up
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="p-3 bg-gray-50 border-t border-gray-200 flex justify-end items-center">
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
                     ))
                   )}
                 </TableBody>
@@ -355,7 +357,7 @@ export default function TodayFollowupsPage() {
                 </div>
                 <div className="space-y-2">
                    <Label htmlFor="followUpTime">
-                    <span className="hidden sm:inline"></span><span className="sm:hidden"></span> Time
+                    <span className="hidden sm:inline"></span><span className="sm:hidden"></span> Time 
                   </Label>
                   <Input id="followUpTime" type="time" value={followTime} onChange={(e) => setFollowTime(e.target.value)} className='p-1' />
                 </div>
@@ -373,14 +375,6 @@ export default function TodayFollowupsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {selectedLeadDetails && (
-        <LeadDetailsDialog
-            lead={selectedLeadDetails}
-            open={showDetailsModal}
-            onOpenChange={setShowDetailsModal}
-        />
-      )}
     </div>
     </TooltipProvider>
   );

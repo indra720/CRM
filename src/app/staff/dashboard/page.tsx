@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Search, Phone, MessageSquare, PlusCircle, User, Flag, Mail } from "lucide-react";
+import { Search, Phone, MessageSquare, PlusCircle, User, Flag, Mail, Filter } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,11 +62,6 @@ export default function StaffDashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [addLeadModalOpen, setAddLeadModalOpen] = useState(false);
   const [kpiCounts, setKpiCounts] = useState({
-    pending_followups: 10,
-    tomorrow_followups: 10,
-    today_followups: 10,
-    upload_leads: 10,
-    remaining_leads: 2,
     total_lead: 15,
     total_visits: 2,
     interested: 2,
@@ -203,7 +198,10 @@ export default function StaffDashboardPage() {
                         />
                     </div>
                 </div>
-                <Button>Filter</Button>
+                <Button>
+                    <Filter className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">Filter</span>
+                </Button>
             </div>
         </CardContent>
       </Card>

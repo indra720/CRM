@@ -73,72 +73,74 @@ import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
 
 // Mock User Data for Team Leader view
-const mockUsers = [
-  {
-    id: 1,
-    name: 'teamlead',
-    mobile: '3216549870',
-    email: 'leader1@example.com',
-    admin: { name: 'admin' },
-    created_date: '2025-10-11T12:00:00.000Z',
-    self_user: { user_active: true },
-     dob: '1990-01-01',
-    address: '123 Leader St, Anytown',
-    city: 'Anytown',
-    state: 'Rajasthan',
-    pincode: '123456',
-    degree: 'B.Eng',
-    pancard: 'LEADR1234F',
-    aadharCard: '123456789012',
-    bank_name: 'State Bank of India',
-    account_number: '1234567890',
-    ifsc_code: 'SBIN000000',
-    upi_id: 'leader1@upi',
-    salary: '80000',
-    referralCode: 'LEAD123',
-    marksheets: null,
-  },
-   {
-    id: 2,
-    name: 'teamlead2',
-    mobile: '3216549871',
-    email: 'leader2@example.com',
-    admin: { name: 'admin' },
-    created_date: '2025-10-12T12:00:00.000Z',
-    self_user: { user_active: false },
-    dob: '1992-05-15',
-    address: '456 Oak Ave, Othertown',
-    city: 'Othertown',
-    state: 'Maharashtra',
-    pincode: '654321',
-    degree: 'M.B.A',
-    pancard: 'LEADR5678K',
-    aadharCard: '987654321098',
-    bank_name: 'HDFC Bank',
-    account_number: '0987654321',
-    ifsc_code: 'HDFC000000',
-    upi_id: 'leader2@upi',
-    salary: '95000',
-    referralCode: 'LEAD456',
-    marksheets: null,
-  },
-];
+// const mockUsers = [
+//   {
+//     id: 1,
+//     name: 'teamlead',
+//     mobile: '3216549870',
+//     email: 'leader1@example.com',
+//     admin: { name: 'admin' },
+//     created_date: '2025-10-11T12:00:00.000Z',
+//     self_user: { user_active: true },
+//      dob: '1990-01-01',
+//     address: '123 Leader St, Anytown',
+//     city: 'Anytown',
+//     state: 'Rajasthan',
+//     pincode: '123456',
+//     degree: 'B.Eng',
+//     pancard: 'LEADR1234F',
+//     aadharCard: '123456789012',
+//     bank_name: 'State Bank of India',
+//     account_number: '1234567890',
+//     ifsc_code: 'SBIN000000',
+//     upi_id: 'leader1@upi',
+//     salary: '80000',
+//     referralCode: 'LEAD123',
+//     marksheets: null,
+//   },
+//    {
+//     id: 2,
+//     name: 'teamlead2',
+//     mobile: '3216549871',
+//     email: 'leader2@example.com',
+//     admin: { name: 'admin' },
+//     created_date: '2025-10-12T12:00:00.000Z',
+//     self_user: { user_active: false },
+//     dob: '1992-05-15',
+//     address: '456 Oak Ave, Othertown',
+//     city: 'Othertown',
+//     state: 'Maharashtra',
+//     pincode: '654321',
+//     degree: 'M.B.A',
+//     pancard: 'LEADR5678K',
+//     aadharCard: '987654321098',
+//     bank_name: 'HDFC Bank',
+//     account_number: '0987654321',
+//     ifsc_code: 'HDFC000000',
+//     upi_id: 'leader2@upi',
+//     salary: '95000',
+//     referralCode: 'LEAD456',
+//     marksheets: null,
+//   },
+// ];
 
-const kpiCounts = {
-    total_pending_followup: 0,
-    total_tomorrow_followup: 0,
-    total_today_followup: 0,
-    total_leads: 0,
-    total_visit: 0,
-    total_interested: 0,
-    total_not_interested: 0,
-    total_other_location: 0,
-    total_not_picked: 0,
-    total_staff: 1,
-    active_staff: 0
-};
+// const kpiCounts = {
+//     total_pending_followup: 0,
+//     total_tomorrow_followup: 0,
+//     total_today_followup: 0,
+//     total_leads: 0,
+//     total_visit: 0,
+//     total_interested: 0,
+//     total_not_interested: 0,
+//     total_other_location: 0,
+//     total_not_picked: 0,
+//     total_staff: 1,
+//     active_staff: 0
+// };
 
 
 const kpiData = [
@@ -265,6 +267,45 @@ export default function TeamLeaderManagementPage() {
 
   const { toast } = useToast();
 
+
+   //  teamleader card data
+  const [cardData, setcardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 7),
+  });
+
+  useEffect(() => {
+    const fetchcardData = async () => {
+      const token = localStorage.getItem("authToken");
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`,
+          {
+            headers: {
+              Authorization: ` Token ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setcardData(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchcardData();
+  }, []);
+
+
   const handleAddFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     if (type === 'file') {
@@ -332,7 +373,7 @@ export default function TeamLeaderManagementPage() {
 
 
   useEffect(() => {
-    setUsers(mockUsers);
+    // setUsers(mockUsers);
   }, []);
 
   const handleToggle = async (id: number, isActive: boolean) => {
@@ -394,17 +435,24 @@ export default function TeamLeaderManagementPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Team Leader List</h1>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      {!loading && cardData ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {kpiData.map((card, index) => (
-              <KpiCard 
-                key={index} 
-                title={card.title} 
-                value={kpiCounts[card.valueKey as keyof typeof kpiCounts]}
-                icon={card.icon} 
-                color={card.color} 
-                link={card.link} />
+            <KpiCard
+              key={index}
+              title={card.title}
+              value={cardData?.[card.valueKey] ?? 0}
+              icon={card.icon}
+              color={card.color}
+              link={card.link}
+            />
           ))}
-      </div>
+        </div>
+      ) : (
+        <p className="text-center text-muted-foreground">
+          Loading dashboard...
+        </p>
+      )}
 
       <Card className="shadow-lg rounded-2xl">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -585,7 +633,7 @@ export default function TeamLeaderManagementPage() {
                               <InputField id="dob" label="Date of Birth" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleAddFormChange} />
                               <InputField id="pancard" label="Pan Card" name="pancard" placeholder="ABCDE1234F" icon={CreditCard} value={formData.pancard} onChange={handleAddFormChange} />
                               <InputField id="aadharCard" label="Aadhar Card" name="aadharCard" placeholder="1234 5678 9012" icon={Fingerprint} value={formData.aadharCard} onChange={handleAddFormChange} />
-                              <InputField id="marksheets" label="MarkSheets" name="marksheets" type="file" icon={FileText} onChange={handleAddFormChange} />
+                              <InputField id="marksheets" label="MarkSheets" name="marksheets" type="file" icon={FileText} onChange={handleAddFormChange} value={''} />
                               <InputField id="degree" label="Degree" name="degree" placeholder="B.Tech, M.Sc" icon={GraduationCap} value={formData.degree} onChange={handleAddFormChange} />
                               <InputField id="city" label="City" name="city" placeholder="e.g. Mumbai" icon={Building2} value={formData.city} onChange={handleAddFormChange} />
                               <InputField id="state" label="State" name="state" value={formData.state} onChange={handleAddFormChange}>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -12,19 +11,14 @@ import {
   useReactTable,
   SortingState,
   ColumnFiltersState,
- 
 } from '@tanstack/react-table';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, Eye, MoreVertical, User, Flag, Calendar, Briefcase, Users, Clock, Tag } from 'lucide-react'; // Added MoreVertical, User, Flag, Calendar, Briefcase, Users, Clock, Tag
+import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Link from 'next/link';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'; // Added DropdownMenu imports
 
 type Lead = {
   id: number;
@@ -33,146 +27,112 @@ type Lead = {
   status: string;
 };
 
-// Mock data to replicate the functionality from the provided code.
 const mockLeads: Lead[] = [
-    { id: 11, name: 'Aryan Mehta', call: '9876543220', status: 'Visit' },
-    { id: 12, name: 'Kiara Sen', call: '9876543221', status: 'Visit' },
+  { id: 1, name: 'Aarav Sharma', call: '9876543210', status: 'New' },
+  { id: 2, name: 'Saanvi Patel', call: '9876543211', status: 'Contacted' },
+  { id: 3, name: 'Vihaan Singh', call: '9876543212', status: 'Interested' },
+  { id: 4, name: 'Myra Reddy', call: '9876543213', status: 'Lost' },
+  { id: 5, name: 'Kabir Verma', call: '9876543214', status: 'New' },
+  { id: 6, name: 'Diya Gupta', call: '9876543215', status: 'Contacted' },
+  { id: 7, name: 'Ishaan Kumar', call: '9876543216', status: 'New' },
+  { id: 8, name: 'Advika Joshi', call: '9876543217', status: 'Lost' },
+  { id: 9, name: 'Reyansh Mehra', call: '9876543218', status: 'Interested' },
+  { id: 10, name: 'Ananya Desai', call: '9876543219', status: 'New' },
 ];
 
-const LeadDetailsDialog = ({ lead, open, onOpenChange }: { lead: any, open: boolean, onOpenChange: (open: boolean) => void }) => {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Lead Details</DialogTitle>
-          <DialogDescription>
-            View the details of the selected lead.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Name
-            </Label>
-            <Input id="name" value={lead.name} className="col-span-3" readOnly />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="call" className="text-right">
-              Call
-            </Label>
-            <Input id="call" value={lead.call} className="col-span-3" readOnly />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="status" className="text-right">
-              Status
-            </Label>
-            <Input id="status" value={lead.status} className="col-span-3" readOnly />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const VisitLeadsPage = () => {
-  const [data] = useState(mockLeads);
+function VisitLeadsPage() {
+  // ✅ States define karo
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
 
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedLeadDetails, setSelectedLeadDetails] = useState<any | null>(null);
-
-  const openDetailsModal = (lead: any) => {
-    setSelectedLeadDetails(lead);
-    setShowDetailsModal(true);
+  // ✅ Toggle function define karo
+  const toggleRow = (rowId: number) => {
+    setExpandedRowId(expandedRowId === rowId ? null : rowId);
   };
 
-  const columns: ColumnDef<Lead>[] = [
-    {
-      accessorKey: 'name',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
-    },
-    {
-      accessorKey: 'call',
-      header: 'Call',
-      cell: ({ row }) => (
-        <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
-          <Phone className="h-5 w-5 text-blue-500" />
-        </a>
-      ),
-    },
-    {
-      accessorKey: 'whatsapp',
-      header: 'Whatsapp',
-      cell: ({ row }) => (
-        <a
-          href={`https://wa.me/${row.getValue('call')}?text=Hello%20${row.original.name}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block hover:scale-110 transition-transform"
-        >
-          <MessageSquare className="h-6 w-6 text-green-500" />
-        </a>
-      ),
-      meta: { className: "hidden md:table-cell" },
-    },
-    {
-      accessorKey: 'status',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Status
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => <div className="capitalize">{row.getValue('status')}</div>,
-      meta: { className: "hidden md:table-cell" },
-    },
-    {
-      id: 'more',
-      header: '',
-      cell: ({ row }) => (
-        <div className="md:hidden"> {/* Only visible on small screens */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => {
-                openDetailsModal(row.original);
-              }}>
-                <Eye className="mr-2 h-4 w-4" /> View Details
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-    },
-  ];
+  // ✅ Table hook component ke andar call karo
   const table = useReactTable({
-    data,
-    columns,
+    data: mockLeads, // ✅ mockLeads use karo
+    columns: [
+      {
+        id: 'sn_expander',
+        header: 'S.N.',
+        cell: ({ row }) => (
+          <>
+            <div className="md:hidden"> {/* Mobile: Plus icon */}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-green-600"
+                onClick={() => toggleRow(row.original.id)}
+              >
+                {expandedRowId === row.original.id ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+              </Button>
+            </div>
+            <div className="hidden md:block"> {/* Desktop: S.N. */}
+              {row.index + 1}
+            </div>
+          </>
+        ),
+      },
+      {
+        accessorKey: 'name',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Name
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+      },
+      {
+        accessorKey: 'call',
+        header: 'Call',
+        cell: ({ row }) => (
+          <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
+            <Phone className="h-5 w-5 text-blue-500" />
+          </a>
+        ),
+      },
+      {
+        accessorKey: 'whatsapp',
+        header: 'Whatsapp',
+        cell: ({ row }) => (
+          <a 
+            href={`https://wa.me/${row.getValue('call')}?text=${encodeURIComponent('Hello ' + row.original.name)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block hover:scale-110 transition-transform"
+          >
+            <MessageSquare className="h-6 w-6 text-green-500" />
+          </a>
+        ),
+      },
+      {
+        accessorKey: 'status',
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Status
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          );
+        },
+        cell: ({ row }) => <div className="capitalize">{row.getValue('status')}</div>,
+        meta: {
+          className: 'hidden sm:table-cell',
+        },
+      },
+    ],
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -187,105 +147,144 @@ const VisitLeadsPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Visit Leads</h1>
-            <Link href="/superadmin/users/admin">
-                <Button variant="outline">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
-                </Button>
-            </Link>
-        </div>
-        <div className="grid gap-4">
-            <Card className="overflow-hidden">
-                <CardContent className="p-2 md:p-6 md:pt-0">
-                    <div className="flex items-center justify-between my-4">
-                        <div className="relative w-full max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search leads..."
-                                value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-                                onChange={(event) =>
-                                    table.getColumn('name')?.setFilterValue(event.target.value)
-                                }
-                                className="pl-10"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <Table className="min-w-[700px]">
-                            <TableHeader>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => {
-                                            return (
-                                                <TableHead key={header.id} className={cn("px-2 py-1", header.column.columnDef.meta?.className)}>
-                                                    {header.isPlaceholder
-                                                        ? null
-                                                        : flexRender(
-                                                            header.column.columnDef.header,
-                                                            header.getContext()
-                                                        )}
-                                                </TableHead>
-                                            );
-                                        })}
-                                    </TableRow>
-                                ))}
-                            </TableHeader>
-                            <TableBody>
-                                {table.getRowModel().rows?.length ? (
-                                    table.getRowModel().rows.map((row) => (
-                                        <TableRow
-                                            key={row.id}
-                                            data-state={row.getIsSelected() && 'selected'}
-                                        >
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id} className={cn("px-2 py-1", cell.column.columnDef.meta?.className)}>
-                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                                            No results.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                    <div className="p-4 border-t">
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <PaginationLink isActive>
-                                        {table.getState().pagination.pageIndex + 1}
-                                    </PaginationLink>
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+      <h1 className="text-2xl font-bold">View Uploaded Leads</h1>
+      
+      <div className="grid gap-4">
+        <Card className="overflow-hidden">
+          <CardContent className="p-2 md:p-6 md:pt-0">
+            
+            <div className="flex items-center justify-between mb-4 px-2 pt-4 md:px-0">
+              <div className="relative w-full max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search leads..."
+                  value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+                  onChange={(event) =>
+                    table.getColumn('name')?.setFilterValue(event.target.value)
+                  }
+                  className="pl-10"
+                />
+              </div>
+            </div>
 
-        {selectedLeadDetails && (
-        <LeadDetailsDialog 
-            lead={selectedLeadDetails} 
-            open={showDetailsModal} 
-            onOpenChange={setShowDetailsModal}
-        />
-      )}
+            <div className="w-full rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id} className={`text-center px-1 ${header.column.columnDef.meta?.className || ''}`}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <React.Fragment key={row.id}>
+                        <TableRow data-state={row.getIsSelected() && 'selected'}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id} className={`text-center px-1 ${cell.column.columnDef.meta?.className || ''}`}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                        {expandedRowId === row.original.id && (
+                          <TableRow className="sm:hidden">
+                            <TableCell colSpan={table.getAllColumns().length} className="p-0">
+                              <div className="p-4 bg-gray-50">
+                                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                  <div className="p-4 flex items-center gap-4 border-b border-gray-200">
+                                    <Avatar>
+                                      <AvatarImage src={`https://avatar.vercel.sh/${row.original.name}.png`} alt={row.original.name} />
+                                      <AvatarFallback>{row.original.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <div className="text-lg font-bold">{row.original.name}</div>
+                                      <div className="text-sm text-gray-500">{row.original.status}</div>
+                                    </div>
+                                  </div>
+                                  <div className="p-4 grid grid-cols-1 gap-4">
+                                    <div className="flex items-center">
+                                      <Phone className="h-4 w-4 mr-3 text-gray-500" />
+                                      <span className="text-sm">{row.original.call}</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <MessageSquare className="h-4 w-4 mr-3 text-gray-500" />
+                                      <a 
+                                        href={`https://wa.me/${row.original.call}?text=${encodeURIComponent('Hello ' + row.original.name)}`} 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        className="text-sm"
+                                      >
+                                        Whatsapp
+                                      </a>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <Tag className="h-4 w-4 mr-3 text-gray-500" />
+                                      <span className="text-sm">Status: {row.original.status}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="p-4 border-t">
+              <div className="flex flex-col items-center space-y-2 py-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing {table.getRowModel().rows.length} of {mockLeads.length} entries
+                </div>
+                <div className="space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    className={!table.getCanPreviousPage() ? '' : 'bg-orange-500 hover:bg-orange-600 text-white'}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                    className={!table.getCanNextPage() ? '' : 'bg-orange-500 hover:bg-orange-600 text-white'}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-};
+}
 
 export default VisitLeadsPage;

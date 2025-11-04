@@ -1,5 +1,5 @@
-
 'use client';
+import React from 'react';
 import {
   BarChart as RechartsBarChart,
   Bar,
@@ -13,133 +13,170 @@ import {
   Pie,
   Cell,
   LabelList,
+  Sector,
 } from 'recharts';
 
-const barData = [
-  { name: 'Jan', productivity: 4000 },
-  { name: 'Feb', productivity: 3000 },
-  { name: 'Mar', productivity: 5000 },
-  { name: 'Apr', productivity: 4500 },
-  { name: 'May', productivity: 6000 },
-  { name: 'Jun', productivity: 2390 },
-  { name: 'Jul', productivity: 3490 },
-  { name: 'Aug', productivity: 4300 },
-  { name: 'Sep', productivity: 5100 },
-  { name: 'Oct', productivity: 4800 },
-  { name: 'Nov', productivity: 5500 },
-  { name: 'Dec', productivity: 3800 },
-];
-
-const staffManagementData = [
-    { name: 'Total Employees', value: 4 },
-    { name: 'Login', value: 3 },
-    { name: 'Not Login', value: 1 },
-    { name: 'In Office', value: 3 },
-    { name: 'Freelancer', value: 7 },
-];
-
-const freelancerData = [
-    { name: 'Total Employees', value: 4 },
-    { name: 'Login', value: 1 },
-    { name: 'Not Login', value: 3 },
-    { name: 'Freelancer', value: 7 },
-];
-
-
-const sourceData = [
-    { name: 'Websites', value: 100 },
-]
-
-const PIE_CHART_COLORS = ['hsl(var(--primary))', '#F97316', '#EF4444', '#10B981', '#3B82F6'];
-const FREELANCER_CHART_COLORS = ['#FB923C', '#F97316', '#EA580C', '#D97706'];
+const COLORS = ['#0088FE', '#00C49F', '#FFA500', '#FF8042', '#AF19FF', '#FF1919'];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-2 bg-background/80 backdrop-blur-sm border rounded-lg shadow-lg">
-        <p className="label font-bold text-foreground">{`${payload[0].name} : ${payload[0].value}`}</p>
+      <div className="p-4 bg-background border border-border rounded-lg shadow-lg">
+        <p className="text-lg font-bold text-foreground">{label}</p>
+        {payload.map((pld: any, index: number) => (
+          <div key={index} style={{ color: pld.color }}>
+            {pld.name}: {pld.value}
+          </div>
+        ))}
       </div>
     );
   }
-
   return null;
 };
 
-export const BarChart = () => (
-  <ResponsiveContainer width="100%" height={300}>
-    <RechartsBarChart data={barData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+
+export const BarChart = ({ data }: { data: any[] }) => (
+  <ResponsiveContainer width="100%" height={400}>
+    <RechartsBarChart data={data} margin={{ top: 5, right: 20, left: -20, bottom: 30 }}>
+      <defs>
+        <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5att%" stopColor="#FFA500" stopOpacity={0.8}/>
+          <stop offset="95%" stopColor="#FFA500" stopOpacity={0}/>
+        </linearGradient>
+      </defs>
       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-      <XAxis dataKey="name" stroke="hsl(var(--card-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-      <YAxis stroke="hsl(var(--card-foreground))" fontSize={12} tickLine={false} axisLine={false} unit="k" tickFormatter={(value) => `$${value/1000}`} />
-      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--accent))', radius: 4 }} />
-      <Legend iconType="circle" iconSize={8} />
-      <Bar dataKey="productivity" name="profit" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={20} />
+      <XAxis 
+        dataKey="name" 
+        stroke="hsl(var(--muted-foreground))" 
+        fontSize={12} 
+        tickLine={false} 
+        axisLine={false}
+        tick={{ fill: 'hsl(var(--muted-foreground))', angle:-45, textAnchor: 'end', }}
+      />
+      <YAxis 
+        stroke="hsl(var(--muted-foreground))" 
+        fontSize={12} 
+        tickLine={false} 
+        axisLine={false}
+        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+      />
+      <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--accent))" }} />
+      <Legend 
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ color: 'hsl(var(--foreground))', paddingTop: 24 }}      />
+      <Bar dataKey="value" fill="url(#colorUv)" radius={[4, 4, 0, 0]} barSize={20} />
     </RechartsBarChart>
   </ResponsiveContainer>
 );
 
-const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, payload }: any) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  const labelRadius = outerRadius + 20;
-  const lx = cx + labelRadius * Math.cos(-midAngle * RADIAN);
-  const ly = cy + labelRadius * Math.sin(-midAngle * RADIAN);
-
+const renderActiveShape = (props: any) => {
+  const RADIAN = Math.PI / 180;
+  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? 'start' : 'end';
 
   return (
-    <text x={lx} y={ly} fill="hsl(var(--card-foreground))" textAnchor={lx > cx ? 'start' : 'end'} dominantBaseline="central">
-      {`${payload.name} - ${payload.value}`}
-    </text>
+    <g>
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+        {payload.name}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`${payload.name}: ${value}`}</text>
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
+        {`(Rate ${(percent * 100).toFixed(2)}%)`}
+      </text>
+    </g>
   );
 };
 
-export const PieChart = ({ type }: { type: 'staff' | 'source' }) => {
-    const data = type === 'staff' ? staffManagementData : sourceData;
-    const colors = PIE_CHART_COLORS;
-    
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <RechartsPieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            labelLine={type === 'staff'}
-            label={type === 'staff' ? renderCustomizedLabel : undefined}
-            outerRadius={80}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-            ))}
-             {type === 'source' && <LabelList dataKey="name" position="outside" offset={15} formatter={(value: string) => `${value} - 100`} />}
-          </Pie>
-          <Tooltip
-            content={<CustomTooltip />}
-            cursor={{ fill: 'hsl(var(--accent))' }}
-          />
-          <Legend wrapperStyle={{color: 'hsl(var(--card-foreground))'}} iconType="circle" iconSize={8} />
-        </RechartsPieChart>
-      </ResponsiveContainer>
-    );
-}
+export const PieChart = ({ data }: { data: any[] }) => {
+  const [activeIndex, setActiveIndex] = React.useState(0);
 
-export const FreelancerChart = () => (
-    <ResponsiveContainer width="100%" height={300}>
-        <RechartsBarChart data={freelancerData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }} barCategoryGap="20%">
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="name" stroke="hsl(var(--card-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="hsl(var(--card-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--accent))', radius: 4 }} />
-            <Bar dataKey="value" name="value" radius={[4, 4, 0, 0]}>
-                {freelancerData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={FREELANCER_CHART_COLORS[index % FREELANCER_CHART_COLORS.length]} />
-                ))}
-                <LabelList dataKey="value" position="top" />
-            </Bar>
-        </RechartsBarChart>
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <RechartsPieChart>
+        <Pie
+          activeIndex={activeIndex}
+          activeShape={renderActiveShape}
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={80}
+          outerRadius={100}
+          fill="#8884d8"
+          dataKey="value"
+          onMouseEnter={onPieEnter}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Legend iconType="circle" iconSize={8} wrapperStyle={{ color: 'hsl(var(--foreground))' }} />
+      </RechartsPieChart>
     </ResponsiveContainer>
+  );
+};
+
+export const FreelancerChart = ({ data }: { data: any[] }) => (
+  <ResponsiveContainer width="100%" height={400}>
+    <RechartsBarChart data={data} margin={{ top: 20, right: 20, left: -20, bottom: 40 }} barCategoryGap="20%">
+      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+      <XAxis 
+        dataKey="name" 
+        stroke="hsl(var(--muted-foreground))" 
+        fontSize={12} 
+        tickLine={false} 
+        axisLine={false}
+        tick={{ fill: 'hsl(var(--muted-foreground))', angle: -45, textAnchor: 'end' }}
+      />
+      <YAxis 
+        stroke="hsl(var(--muted-foreground))" 
+        fontSize={12} 
+        tickLine={false} 
+        axisLine={false}
+        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+      />
+      <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--accent))" }} />
+      <Bar dataKey="value" name="Value" radius={[4, 4, 0, 0]}>
+        {data.map((entry, index) => (
+          <Cell 
+            key={`cell-${index}`} 
+            fill={COLORS[index % COLORS.length]} 
+          />
+        ))}
+        <LabelList dataKey="value" position="top" fill="hsl(var(--foreground))" fontSize={12} fontWeight={600} />
+      </Bar>
+    </RechartsBarChart>
+  </ResponsiveContainer>
 );

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -16,7 +15,8 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, History, PlusCircle, User, Flag, Mail, MoreVertical } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, History, PlusCircle, User, Flag, Mail, MoreVertical, Eye, Plus, Minus, Tag } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
@@ -27,7 +27,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { DetailsDialog } from '@/components/details-dialog';
+import { useRouter } from 'next/navigation';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 
 type Lead = {
@@ -38,46 +44,102 @@ type Lead = {
 };
 
 const mockLeads: Lead[] = [
-    { id: 1, name: 'Aarav Sharma', call: '9876543210', status: 'New' },
-    { id: 2, name: 'Saanvi Patel', call: '9876543211', status: 'Contacted' },
-    { id: 3, name: 'Vihaan Singh', call: '9876543212', status: 'Interested' },
-    { id: 4, name: 'Myra Reddy', call: '9876543213', status: 'Not Interested' },
-    { id: 5, name: 'Kabir Verma', call: '9876543214', status: 'New' },
-    { id: 6, name: 'Diya Gupta', call: '9876543215', status: 'Remaining' },
-    { id: 7, name: 'Ishaan Kumar', call: '9876543216', status: 'New' },
-    { id: 8, name: 'Advika Joshi', call: '9876543217', status: 'Not Interested' },
-    { id: 9, name: 'Reyansh Mehra', call: '9876543218', status: 'Interested' },
-    { id: 10, name: 'Ananya Desai', call: '9876543219', status: 'New' },
-    { id: 11, name: 'Aryan Mehta', call: '9876543220', status: 'Visit' },
-    { id: 12, name: 'Kiara Sen', call: '9876543221', status: 'Visit' },
-    { id: 13, name: 'Arjun Rao', call: '9876543222', status: 'Not Picked' },
-    { id: 14, name: 'Zara Khan', call: '9876543223', status: 'Not Picked' },
-    { id: 15, name: 'Samaira Iyer', call: '9876543224', status: 'Other Location' },
+  { id: 1, name: "Aarav Sharma", call: "9876543210", status: "New" },
+  { id: 2, name: "Saanvi Patel", call: "9876543211", status: "Contacted" },
+  { id: 3, name: "Vihaan Singh", call: "9876543212", status: "Interested" },
+  { id: 4, name: "Myra Reddy", call: "9876543213", status: "Not Interested" },
+  { id: 5, name: "Kabir Verma", call: "9876543214", status: "New" },
+  { id: 6, name: "Diya Gupta", call: "9876543215", status: "Remaining" },
+  { id: 7, name: "Ishaan Kumar", call: "9876543216", status: "New" },
+  { id: 8, name: "Advika Joshi", call: "9876543217", status: "Not Interested" },
+  { id: 9, name: "Reyansh Mehra", call: "9876543218", status: "Interested" },
+  { id: 10, name: "Ananya Desai", call: "9876543219", status: "New" },
+  { id: 11, name: "Aryan Mehta", call: "9876543220", status: "Visit" },
+  { id: 12, name: "Kiara Sen", call: "9876543221", status: "Visit" },
+  { id: 13, name: "Arjun Rao", call: "9876543222", status: "Not Picked" },
+  { id: 14, name: "Zara Khan", call: "9876543223", status: "Not Picked" },
+  {
+    id: 15,
+    name: "Samaira Iyer",
+    call: "9876543224",
+    status: "Other Location",
+  },
 ];
+
+const TotalLeadsPage = () => {
+  const router = useRouter();
+  const [data, setData] = useState(mockLeads);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [addLeadModalOpen, setAddLeadModalOpen] = useState(false);
+  const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const { toast } = useToast();
+
+  const toggleRow = (rowId: number) => {
+    setExpandedRowId(expandedRowId === rowId ? null : rowId);
+  };
 
   const columns: ColumnDef<Lead>[] = [
     {
-        id: 'sn',
-        header: 'S.N.',
-        cell: ({ row }) => <div>{row.index + 1}</div>,
-    },
-    {
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
-    },
-    {
-      accessorKey: 'call',
-      header: 'Call',
+      id: "sn_expander",
+      header: "S.N.",
       cell: ({ row }) => (
-        <a href={`tel:${row.getValue('call')}`} className="inline-block hover:scale-110 transition-transform">
+        <>
+          <div className="md:hidden">
+            {" "}
+            {/* Mobile: Plus icon */}
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-green-600"
+              onClick={() => toggleRow(row.original.id)}
+            >
+              {expandedRowId === row.original.id ? (
+                <Minus className="h-4 w-4" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="hidden md:block">
+            {" "}
+            {/* Desktop: S.N. */}
+            {row.index + 1}
+          </div>
+        </>
+      ),
+      meta: {
+        className: 'w-1/3 md:w-1/6 text-center',
+      },
+    },
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("name")}</div>
+      ),
+      meta: {
+        className: 'w-1/3 md:w-1/6',
+      },
+    },
+    {
+      accessorKey: "call",
+      header: "Call",
+      cell: ({ row }) => (
+        <a
+          href={`tel:${row.getValue("call")}`}
+          className="inline-block hover:scale-110 transition-transform"
+        >
           <Phone className="h-5 w-5 text-blue-500" />
         </a>
       ),
+      meta: {
+        className: 'w-1/3 md:w-1/6 text-center',
+      },
     },
     {
-      id: 'whatsapp',
-      header: 'Whatsapp',
+      id: "whatsapp",
+      header: "Whatsapp",
       cell: ({ row }) => (
         <a
           href={`https://wa.me/91${row.original.call}?text=Hello%20${row.original.name}`}
@@ -89,78 +151,55 @@ const mockLeads: Lead[] = [
         </a>
       ),
       meta: {
-        className: 'hidden md:table-cell',
+        className: "hidden md:table-cell md:w-1/6 text-center",
       },
     },
     {
-      accessorKey: 'status',
-      header: 'Change Status',
+      accessorKey: "status",
+      header: "Change Status",
       cell: ({ row }) => (
-          <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">{row.getValue('status')} ▼</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                  {["New", "Contacted", "Interested", "Not Interested", "Lost", "Visit"].map(option => (
-                  <DropdownMenuItem key={option} onSelect={() => console.log(`Changed to ${option}`)}>
-                      {option}
-                  </DropdownMenuItem>
-                  ))}
-              </DropdownMenuContent>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              {row.getValue("status")} ▼
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {[
+              "New",
+              "Contacted",
+              "Interested",
+              "Not Interested",
+              "Lost",
+              "Visit",
+            ].map((option) => (
+              <DropdownMenuItem
+                key={option}
+                onSelect={() => console.log(`Changed to ${option}`)}
+              >
+                {option}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
         </DropdownMenu>
       ),
       meta: {
-        className: 'hidden md:table-cell',
+        className: "hidden md:table-cell md:w-1/6",
       },
     },
     {
-      id: 'history',
-      header: 'History',
+      id: "history",
+      header: "History",
       cell: ({ row }) => (
         <Button variant="ghost" size="icon">
           <History className="h-5 w-5 text-muted-foreground" />
         </Button>
       ),
       meta: {
-        className: 'hidden md:table-cell',
+        className: "hidden md:table-cell md:w-1/6 text-center",
       },
     },
-    {
-      id: 'more',
-      header: '',
-      cell: ({ row }) => (
-        <div className="md:hidden"> {/* Only visible on small screens */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => {
-                setSelectedLead(row.original);
-                setIsDetailsOpen(true);
-              }}>
-                <Eye className="mr-2 h-4 w-4" /> View Details
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
-    },
   ];
-
-
-const TotalLeadsPage = () => {
-  const [data, setData] = useState(mockLeads);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [addLeadModalOpen, setAddLeadModalOpen] = useState(false);
-  const { toast } = useToast();
-
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null); // New state
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false); // New state
 
   const [formData, setFormData] = useState({
     name: "",
@@ -180,12 +219,14 @@ const TotalLeadsPage = () => {
     "Visit",
   ];
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     if (name === "mobile" && value.length > 10) return;
     setFormData({ ...formData, [name]: value });
   };
-  
+
   const handleFormSelectChange = (value: string) => {
     setFormData({ ...formData, status: value });
   };
@@ -193,20 +234,24 @@ const TotalLeadsPage = () => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form Submitted:", formData);
-    const newLead: Lead = { ...formData, id: Date.now(), call: formData.mobile };
-    setData(prev => [...prev, newLead]);
+    const newLead: Lead = {
+      ...formData,
+      id: Date.now(),
+      call: formData.mobile,
+    };
+    setData((prev) => [...prev, newLead]);
     toast({
-        title: "Lead Added!",
-        description: `${formData.name} has been successfully added.`,
-        className: 'bg-green-500 text-white'
+      title: "Lead Added!",
+      description: `${formData.name} has been successfully added.`,
+      className: "bg-green-500 text-white",
     });
     // Reset form
     setFormData({
-        name: "",
-        status: "",
-        mobile: "",
-        email: "",
-        description: "",
+      name: "",
+      status: "",
+      mobile: "",
+      email: "",
+      description: "",
     });
     setAddLeadModalOpen(false);
   };
@@ -226,209 +271,348 @@ const TotalLeadsPage = () => {
       pagination: {
         pageIndex: 0,
         pageSize: 10,
-      }
+      },
     },
   });
 
   return (
-    <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Leads</h1>
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => router.push("/superadmin/users/admin")}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Back to Admin Page</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <h1 className="text-2xl font-bold">Leads</h1>
+        </div>
         <div className="grid gap-4">
-            <Card className="overflow-hidden">
-                <CardContent className="p-2 md:p-6 md:pt-0">
-                    <div className="flex flex-col sm:flex-row gap-4 my-4">
-                        <div className="flex items-center gap-2">
-                            <div className="relative w-full max-w-sm">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search leads..."
-                                    value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-                                    onChange={(event) =>
-                                        table.getColumn('name')?.setFilterValue(event.target.value)
-                                    }
-                                    className="pl-10"
-                                />
-                            </div>
-                        </div>
-                        <Button onClick={() => setAddLeadModalOpen(true)}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Add Lead
-                        </Button>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <Table className="min-w-[700px]">
-                            <TableHeader>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => {
-                                            return (
-                                                <TableHead key={header.id}>
-                                                    {header.isPlaceholder
-                                                        ? null
-                                                        : flexRender(
-                                                            header.column.columnDef.header,
-                                                            header.getContext()
-                                                        )}
-                                                </TableHead>
-                                            );
-                                        })}
-                                    </TableRow>
-                                ))}
-                            </TableHeader>
-                            <TableBody>
-                                {table.getRowModel().rows?.length ? (
-                                    table.getRowModel().rows.map((row) => (
-                                        <TableRow
-                                            key={row.id}
-                                            data-state={row.getIsSelected() && 'selected'}
-                                        >
-                                            {row.getVisibleCells().map((cell) => (
-                                                <TableCell key={cell.id}>
-                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                                            No results.
-                                        </TableCell>
-                                    </TableRow>
+          <Card className="overflow-hidden">
+            <CardContent className="p-2 md:p-6 md:pt-0">
+              <div className="flex flex-row gap-4 my-4">
+                <div className="flex items-center gap-2">
+                  <div className="relative w-full max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search leads..."
+                      value={
+                        (table.getColumn("name")?.getFilterValue() as string) ??
+                        ""
+                      }
+                      onChange={(event) =>
+                        table
+                          .getColumn("name")
+                          ?.setFilterValue(event.target.value)
+                      }
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <Button onClick={() => setAddLeadModalOpen(true)}>
+                  <PlusCircle className="sm:mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Add Lead</span>
+                </Button>
+              </div>
+              <div className="w-full overflow-x-auto">
+                <Table className="w-full table-fixed">
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          return (
+                            <TableHead 
+                              key={header.id} 
+                              className={header.column.columnDef.meta?.className || ''}
+                            >
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </TableHead>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <React.Fragment key={row.id}>
+                          <TableRow
+                            data-state={row.getIsSelected() && "selected"}
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell 
+                                key={cell.id}
+                                className={cell.column.columnDef.meta?.className || ''}
+                              >
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
                                 )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                    <div className="p-4 border-t">
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <PaginationLink isActive>
-                                        {table.getState().pagination.pageIndex + 1}
-                                    </PaginationLink>
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
-                    </div>
-                </CardContent>
-            </Card>
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                          {expandedRowId === row.original.id && (
+                            <TableRow className="sm:hidden">
+                              <TableCell colSpan={table.getAllColumns().length} className="p-0">
+                                <div className="p-4">
+                                  <Card className="border-0 shadow-sm">
+                                    <CardHeader className="p-4 pb-2">
+                                      <div className="flex items-center gap-4">
+                                        <Avatar className="h-12 w-12">
+                                          <AvatarImage src={`https://avatar.vercel.sh/${row.original.name}.png`} alt={row.original.name} />
+                                          <AvatarFallback className="bg-primary text-primary-foreground">{row.original.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                          <p className="text-lg font-semibold text-foreground">{row.original.name}</p>
+                                          <p className="text-sm text-muted-foreground capitalize">{row.original.status}</p>
+                                        </div>
+                                      </div>
+                                    </CardHeader>
+                                    <CardContent className="p-4 space-y-3">
+                                      <div className="flex items-center gap-3 p-2 rounded-md bg-background">
+                                        <Phone className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                        <a href={`tel:${row.original.call}`} className="text-sm font-medium hover:underline">
+                                          {row.original.call}
+                                        </a>
+                                      </div>
+                                      <div className="flex items-center gap-3 p-2 rounded-md bg-background">
+                                        <MessageSquare className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                        <a
+                                          href={`https://wa.me/91${row.original.call}?text=${encodeURIComponent('Hello ' + row.original.name)}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-sm font-medium hover:underline"
+                                        >
+                                          Message on WhatsApp
+                                        </a>
+                                      </div>
+                                      <div className="flex items-center gap-3 p-2 rounded-md bg-background">
+                                        <Tag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <div className="flex-1">
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <Button variant="outline" size="sm" className="w-full justify-start h-8">
+                                                {row.original.status}
+                                              </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="start" className="w-48">
+                                              {[
+                                                "New",
+                                                "Contacted",
+                                                "Interested",
+                                                "Not Interested",
+                                                "Lost",
+                                                "Visit",
+                                              ].map((option) => (
+                                                <DropdownMenuItem
+                                                  key={option}
+                                                  onSelect={() => console.log(`Changed to ${option}`)}
+                                                  className="capitalize"
+                                                >
+                                                  {option}
+                                                </DropdownMenuItem>
+                                              ))}
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </div>
+                                      </div>
+                                      <div className="flex justify-end p-2">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                          <History className="h-4 w-4 text-muted-foreground" />
+                                          <span className="sr-only">View History</span>
+                                        </Button>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={columns.length}
+                          className="h-24 text-center"
+                        >
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="p-4 border-t">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                      />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink isActive>
+                        {table.getState().pagination.pageIndex + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Dialog open={addLeadModalOpen} onOpenChange={setAddLeadModalOpen}>
-            <DialogContent className="w-[95vw] sm:max-w-2xl">
+          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
             <DialogHeader>
-                <DialogTitle className="text-2xl font-bold">Create a New Lead</DialogTitle>
-                <DialogDescription>Fill out the form below to add a new lead to the system.</DialogDescription>
-                </DialogHeader>
-                <form
-                    onSubmit={handleFormSubmit}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-4"
+              <DialogTitle className="text-2xl font-bold">
+                Create a New Lead
+              </DialogTitle>
+              <DialogDescription>
+                Fill out the form below to add a new lead to the system.
+              </DialogDescription>
+            </DialogHeader>
+            <form
+              onSubmit={handleFormSubmit}
+              className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-4"
+            >
+              <div className="space-y-2">
+                <Label
+                  htmlFor="name"
+                  className="flex items-center gap-2 text-sm font-medium"
                 >
-                    <div className="space-y-2">
-                    <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium"><User className="w-4 h-4" /> Name</Label>
-                    <Input
-                        type="text"
-                        id="name"
-                        name="name"
-                        maxLength={30}
-                        required
-                        placeholder="e.g. John Doe"
-                        value={formData.name}
-                        onChange={handleFormChange}
-                        className="h-11"
-                    />
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <Label htmlFor="status" className="flex items-center gap-2 text-sm font-medium"><Flag className="w-4 h-4" /> Status</Label>
-                        <Select
-                            value={formData.status}
-                            onValueChange={handleFormSelectChange}
-                            required
-                        >
-                            <SelectTrigger id="status" className="h-11">
-                                <SelectValue placeholder="Select Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {statuses.map((status) => (
-                                    <SelectItem key={status} value={status}>
-                                    {status}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                  <User className="w-4 h-4" /> Name
+                </Label>
+                <Input
+                  type="text"
+                  id="name"
+                  name="name"
+                  maxLength={30}
+                  required
+                  placeholder="e.g. John Doe"
+                  value={formData.name}
+                  onChange={handleFormChange}
+                  className="h-11"
+                />
+              </div>
 
-                    <div className="space-y-2">
-                    <Label htmlFor="mobile" className="flex items-center gap-2 text-sm font-medium"><Phone className="w-4 h-4" /> Mobile</Label>
-                    <Input
-                        type="number"
-                        id="mobile"
-                        name="mobile"
-                        placeholder="e.g. 9876543210"
-                        required
-                        value={formData.mobile}
-                        onChange={handleFormChange}
-                        className="h-11"
-                    />
-                    </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="status"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <Flag className="w-4 h-4" /> Status
+                </Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={handleFormSelectChange}
+                  required
+                >
+                  <SelectTrigger id="status" className="h-11">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                    <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium"><Mail className="w-4 h-4" /> Email</Label>
-                    <Input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="e.g. john.doe@example.com"
-                        value={formData.email}
-                        onChange={handleFormChange}
-                        className="h-11"
-                    />
-                    </div>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="mobile"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <Phone className="w-4 h-4" /> Mobile
+                </Label>
+                <Input
+                  type="number"
+                  id="mobile"
+                  name="mobile"
+                  placeholder="e.g. 9876543210"
+                  required
+                  value={formData.mobile}
+                  onChange={handleFormChange}
+                  className="h-11"
+                />
+              </div>
 
-                    <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="description" className="flex items-center gap-2 text-sm font-medium"><MessageSquare className="w-4 h-4" /> Description</Label>
-                    <Textarea
-                        id="description"
-                        name="description"
-                        placeholder="Add any relevant notes or details here..."
-                        rows={4}
-                        value={formData.description}
-                        onChange={handleFormChange}
-                        className="resize-none"
-                    />
-                    </div>
-                    <DialogFooter className="md:col-span-2">
-                        <Button variant="outline" onClick={() => setAddLeadModalOpen(false)}>Cancel</Button>
-                        <Button type="submit">Add Lead</Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="email"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <Mail className="w-4 h-4" /> Email
+                </Label>
+                <Input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="e.g. john.doe@example.com"
+                  value={formData.email}
+                  onChange={handleFormChange}
+                  className="h-11"
+                />
+              </div>
+
+              <div className="md:col-span-2 space-y-2">
+                <Label
+                  htmlFor="description"
+                  className="flex items-center gap-2 text-sm font-medium"
+                >
+                  <MessageSquare className="w-4 h-4" /> Description
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Add any relevant notes or details here..."
+                  rows={4}
+                  value={formData.description}
+                  onChange={handleFormChange}
+                  className="resize-none"
+                />
+              </div>
+              <DialogFooter className="md:col-span-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setAddLeadModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Add Lead</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
         </Dialog>
-
-        {selectedLead && (
-          <DetailsDialog
-            title="Lead Details"
-            description={`Full details for ${selectedLead.name}.`}
-            details={[
-              { label: "Name", value: selectedLead.name, icon: User },
-              { label: "Mobile", value: selectedLead.call, icon: Phone },
-              { label: "Status", value: selectedLead.status, icon: Flag },
-            ]}
-            open={isDetailsOpen}
-            onOpenChange={setIsDetailsOpen}
-          />
-        )}
-    </div>
+      </div>
+    </>
   );
 };
 
 export default TotalLeadsPage;
-
-  

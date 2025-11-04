@@ -74,70 +74,72 @@ import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
 
 
 // Mock User Data
-const mockUsers = [
-  {
-    id: 1,
-    name: 'staff',
-    teamLeader: 'teamlead',
-    mobile: '9632587410',
-    created_date: '2025-10-11T12:00:00.000Z',
-    self_user: { user_active: true },
-    email: 'staff1@example.com',
-    password: 'password123',
-    dob: '1995-01-01',
-    address: '789 Staff St, Worktown',
-    city: 'Worktown',
-    state: 'Gujarat',
-    pincode: '987654',
-    degree: 'B.Com',
-    pancard: 'STAFF1234F',
-    aadharCard: '567890123456',
-    bank_name: 'Axis Bank',
-    account_number: '5678901234',
-    ifsc_code: 'UTIB000000',
-    upi_id: 'staff1@upi',
-    salary: '30000',
-    referralCode: 'STAFF123',
-  },
-   {
-    id: 2,
-    name: 'staff2',
-    teamLeader: 'teamlead',
-    mobile: '9876543211',
-    created_date: '2025-10-12T12:00:00.000Z',
-    self_user: { user_active: false },
-    email: 'staff2@example.com',
-    password: 'password456',
-    dob: '1998-05-15',
-    address: '101 Staff Ave, Jobville',
-    city: 'Jobville',
-    state: 'Maharashtra',
-    pincode: '456789',
-    degree: 'B.A',
-    pancard: 'STAFF5678K',
-    aadharCard: '678901234567',
-    bank_name: 'ICICI Bank',
-    account_number: '6789012345',
-    ifsc_code: 'ICIC000000',
-    upi_id: 'staff2@upi',
-    salary: '35000',
-    referralCode: 'STAFF456',
-  },
-];
+// const mockUsers = [
+//   {
+//     id: 1,
+//     name: 'staff',
+//     teamLeader: 'teamlead',
+//     mobile: '9632587410',
+//     created_date: '2025-10-11T12:00:00.000Z',
+//     self_user: { user_active: true },
+//     email: 'staff1@example.com',
+//     password: 'password123',
+//     dob: '1995-01-01',
+//     address: '789 Staff St, Worktown',
+//     city: 'Worktown',
+//     state: 'Gujarat',
+//     pincode: '987654',
+//     degree: 'B.Com',
+//     pancard: 'STAFF1234F',
+//     aadharCard: '567890123456',
+//     bank_name: 'Axis Bank',
+//     account_number: '5678901234',
+//     ifsc_code: 'UTIB000000',
+//     upi_id: 'staff1@upi',
+//     salary: '30000',
+//     referralCode: 'STAFF123',
+//   },
+//    {
+//     id: 2,
+//     name: 'staff2',
+//     teamLeader: 'teamlead',
+//     mobile: '9876543211',
+//     created_date: '2025-10-12T12:00:00.000Z',
+//     self_user: { user_active: false },
+//     email: 'staff2@example.com',
+//     password: 'password456',
+//     dob: '1998-05-15',
+//     address: '101 Staff Ave, Jobville',
+//     city: 'Jobville',
+//     state: 'Maharashtra',
+//     pincode: '456789',
+//     degree: 'B.A',
+//     pancard: 'STAFF5678K',
+//     aadharCard: '678901234567',
+//     bank_name: 'ICICI Bank',
+//     account_number: '6789012345',
+//     ifsc_code: 'ICIC000000',
+//     upi_id: 'staff2@upi',
+//     salary: '35000',
+//     referralCode: 'STAFF456',
+//   },
+// ];
 
-// Mock data counts for the KPI cards
-const kpiCounts = {
-    total_leads: 15,
-    total_visit: 2,
-    interested: 2,
-    not_interested: 2,
-    other_location: 1,
-    not_picked: 2,
-    total_earning: "0.00"
-};
+// // Mock data counts for the KPI cards
+// const kpiCounts = {
+//     total_leads: 15,
+//     total_visit: 2,
+//     interested: 2,
+//     not_interested: 2,
+//     other_location: 1,
+//     not_picked: 2,
+//     total_earning: "0.00"
+// };
 
 
 const kpiData = [
@@ -257,6 +259,43 @@ export default function StaffManagementPage() {
   const [activeTab, setActiveTab] = useState("personal");
 
   const { toast } = useToast();
+ 
+  // staff teamleader card data 
+  const [cardData, setcardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 7),
+  });
+
+  useEffect(() => {
+    const fetchcardData = async () => {
+      const token = localStorage.getItem("authToken");
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`,
+          {
+            headers: {
+              Authorization: ` Token ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setcardData(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchcardData();
+  }, []);
 
 
   const handleAddFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -330,7 +369,7 @@ export default function StaffManagementPage() {
 
 
   useEffect(() => {
-    setUsers(mockUsers);
+    // setUsers(mockUsers);
   }, []);
 
   const handleToggle = async (id: number, isActive: boolean) => {
@@ -389,18 +428,24 @@ export default function StaffManagementPage() {
   return (
     <div className="space-y-6">
         <h1 className="text-2xl font-bold tracking-tight">Staff Users</h1>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-            {kpiData.map((card, index) => (
-                <KpiCard 
-                  key={index} 
-                  title={card.title} 
-                  value={kpiCounts[card.valueKey as keyof typeof kpiCounts]}
-                  icon={card.icon}
-                  color={card.color}
-                  link={card.link}
-                />
-            ))}
+        {!loading && cardData ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {kpiData.map((card, index) => (
+            <KpiCard
+              key={index}
+              title={card.title}
+              value={cardData?.[card.valueKey] ?? 0}
+              icon={card.icon}
+              color={card.color}
+              link={card.link}
+            />
+          ))}
         </div>
+      ) : (
+        <p className="text-center text-muted-foreground">
+          Loading dashboard...
+        </p>
+      )}
 
       <Card className="shadow-lg rounded-2xl">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
