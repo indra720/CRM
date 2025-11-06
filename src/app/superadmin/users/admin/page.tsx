@@ -92,75 +92,9 @@ import {
 import { DetailsDialog } from "@/components/details-dialog";
 import { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
+import { toggleUserActiveStatus } from "@/lib/api";
 
-// Mock User Data
-// const mockUsers = [
-//   {
-//     id: 1,
-//     name: "Admin User 1",
-//     mobile: "123-456-7890",
-//     email: "admin1@example.com",
-//     password: "password123",
-//     dob: "1990-01-01",
-//     address: "123 Main St, Anytown",
-//     city: "Anytown",
-//     state: "Rajasthan",
-//     pincode: "123456",
-//     degree: "B.Tech",
-//     pancard: "ABCDE1234F",
-//     aadharCard: "123456789012",
-//     bank_name: "State Bank of India",
-//     account_number: "1234567890",
-//     ifsc_code: "SBIN000000",
-//     upi_id: "admin1@upi",
-//     salary: "50000",
-//     referralCode: "REF123",
-//     created_date: new Date().toISOString(),
-//     self_user: { user_active: true },
-//     marksheets: null,
-//   },
-//   {
-//     id: 2,
-//     name: "Admin User 2",
-//     mobile: "098-765-4321",
-//     email: "admin2@example.com",
-//     password: "password456",
-//     dob: "1992-05-15",
-//     address: "456 Oak Ave, Othertown",
-//     city: "Othertown",
-//     state: "Maharashtra",
-//     pincode: "654321",
-//     degree: "M.Sc",
-//     pancard: "FGHIJ5678K",
-//     aadharCard: "987654321098",
-//     bank_name: "HDFC Bank",
-//     account_number: "0987654321",
-//     ifsc_code: "HDFC000000",
-//     upi_id: "admin2@upi",
-//     salary: "75000",
-//     referralCode: "REF456",
-//     created_date: new Date(
-//       new Date().setDate(new Date().getDate() - 10)
-//     ).toISOString(),
-//     self_user: { user_active: false },
-//     marksheets: null,
-//   },
-// ];
 
-// Mock data counts for the KPI cards
-// const kpiCounts = {
-//     total_pending_followup: 10,
-//     total_tomorrow_followup: 10,
-//     total_today_followup: 10,
-//     total_upload_leads: 10,
-//     total_left_leads: 2,
-//     total_assign_leads: 15,
-//     total_visits: 2,
-//     total_interested: 2,
-//     total_not_interested: 2,
-//     total_other_location: 1,
-//     total_not_picked: 2,
-// };
 
 const kpiData = [
   {
@@ -615,29 +549,7 @@ export default function AdminManagementPage() {
     );
 
     try {
-      const token = localStorage.getItem("authToken");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/toggle-active/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Token ${token}`,
-          },
-          body: JSON.stringify({
-            user_id: id,
-            user_type: "admin",
-            is_active: isActive,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      await toggleUserActiveStatus(id, "admin", isActive);
 
       // 3. Success: Show toast
       toast({

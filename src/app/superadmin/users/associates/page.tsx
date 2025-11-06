@@ -56,50 +56,10 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
+import { toggleUserActiveStatus } from "@/lib/api";
 
-
-// Mock User Data
-const mockUsers = [
-    {
-        id: 1,
-        name: "Ravi Sharma",
-        teamLeader: "Pooja Mehta",
-        mobile: "9876543210",
-        created_date: "2025-10-10T12:00:00.000Z",
-        self_user: { user_active: true },
-        email: 'ravi.sharma@example.com',
-        password: 'password123',
-    },
-    {
-        id: 2,
-        name: "Vikas Singh",
-        teamLeader: "Anita Das",
-        mobile: "9998887776",
-        created_date: "2025-10-08T12:00:00.000Z",
-        self_user: { user_active: false },
-        email: 'vikas.singh@example.com',
-        password: 'password456',
-    },
-    {
-        id: 3,
-        name: "Sneha Kapoor",
-        teamLeader: "Rajiv Verma",
-        mobile: "9123456789",
-        created_date: "2025-10-02T12:00:00.000Z",
-        self_user: { user_active: true },
-        email: 'sneha.kapoor@example.com',
-        password: 'password789',
-    },
-];
-
-const kpiCounts = {
-    total_visit: 230,
-    interested: 75,
-    not_interested: 40,
-    other_location: 22,
-    not_picked: 19,
-    total_earning: "1,20,000.00"
-};
 
 const kpiData = [
     { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-blue-500", link: "/superadmin/users/admin" },
@@ -133,7 +93,7 @@ const UserDetailsDialog = ({ user, open, onOpenChange }: { user: any, open: bool
                     <div><p className="text-sm text-muted-foreground">Name</p><p className="font-medium text-foreground">{user.name || 'N/A'}</p></div>
                     <div><p className="text-sm text-muted-foreground">Mobile No</p><p className="font-medium text-foreground">{user.mobile || 'N/A'}</p></div>
                     <div><p className="text-sm text-muted-foreground">Team Leader</p><p className="font-medium text-foreground">{user.teamLeader || 'N/A'}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Created Date</p><p className="font-medium text-foreground">{new Date(user.created_date).toLocaleDateString()}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Created Date</p><p className="font-medium text-foreground">{user.created_date ? new Date(user.created_date).toLocaleDateString() : 'N/A'}</p></div>
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-muted-foreground">Active Status</p>
                       <Switch
@@ -165,6 +125,57 @@ export default function AssociatesPage() {
 
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+
+  const [cardData, setcardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 7),
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        setError("Authentication token not found.");
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/associates/dashboard/`,
+          {
+            headers: {
+              Authorization: ` Token ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setcardData({
+            total_visit: data.total_visits_leads,
+            interested: data.total_interested_leads,
+            not_interested: data.total_not_interested_leads,
+            other_location: data.total_other_location_leads,
+            not_picked: data.total_not_picked_leads,
+            total_earning: data.total_earning,
+        });
+        setUsers(data.my_staff);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
 
   const { toast } = useToast();
 
@@ -226,26 +237,46 @@ export default function AssociatesPage() {
     setEditingUser(null);
   };
 
-
   useEffect(() => {
-    setUsers(mockUsers);
+    // setUsers(mockUsers);
   }, []);
 
   const handleToggle = async (id: number, isActive: boolean) => {
+    // 1. Optimistic UI Update
+    const originalUsers = [...users];
+    setUsers(
+      users.map((u) =>
+        u.id === id
+          ? { ...u, self_user: { ...u.self_user, user_active: isActive } }
+          : u
+      )
+    );
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setUsers(users.map(u => u.id === id ? {...u, self_user: {...u.self_user, user_active: isActive}} : u));
-       toast({
-        title: 'Status Updated',
-        description: `User status changed to ${isActive ? 'Active' : 'Inactive'}.`,
-        className: 'bg-blue-500 text-white'
-      });
-    } catch (error) {
-      console.error(error);
+      await toggleUserActiveStatus(id, "associate", isActive);
+
+      // 3. Success: Show toast
       toast({
-        title: 'Error',
-        description: 'Failed to update user status.',
-        variant: 'destructive',
+        title: "Status Updated",
+        description: `User status changed to ${
+          isActive ? "Active" : "Inactive"
+        }.`,
+        className: "bg-blue-500 text-white",
+        duration: 3000,
+      });
+
+      // Optional: Refetch in the background to ensure consistency
+      // fetchData(); // Use fetchData for this component
+    } catch (error: any) {
+      // 2. Failure: Revert state and show error
+      setUsers(originalUsers);
+      console.error("Failed to update user status:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update user status: ${
+          error.message || "Unknown error"
+        }`,
+        variant: "destructive",
       });
     }
   };
@@ -281,18 +312,24 @@ export default function AssociatesPage() {
   return (
     <div className="space-y-6 flex flex-col h-full">
         <h1 className="text-2xl font-bold tracking-tight">Associate Users</h1>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {kpiData.map((card, index) => (
-                <KpiCard 
-                  key={index} 
-                  title={card.title} 
-                  value={kpiCounts[card.valueKey as keyof typeof kpiCounts]}
-                  icon={card.icon}
-                  color={card.color}
-                  link={card.link}
-                />
-            ))}
+       {!loading && cardData ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {kpiData.map((card, index) => (
+            <KpiCard
+              key={index}
+              title={card.title}
+              value={cardData?.[card.valueKey] ?? 0}
+              icon={card.icon}
+              color={card.color}
+              link={card.link}
+            />
+          ))}
         </div>
+      ) : (
+        <p className="text-center text-muted-foreground">
+          Loading dashboard...
+        </p>
+      )}
 
       <Card className="shadow-lg rounded-2xl flex-1 flex flex-col">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -337,7 +374,7 @@ export default function AssociatesPage() {
                     <TableCell className="hidden sm:table-cell text-base md:text-sm">{user.teamLeader}</TableCell>
                     <TableCell className="hidden md:table-cell text-base md:text-sm">{user.mobile}</TableCell>
                     <TableCell className="hidden lg:table-cell text-base md:text-sm">
-                      {new Date(user.created_date).toLocaleDateString()}
+                      {user.created_date ? new Date(user.created_date).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
                         <Button variant="link" size="sm" className="p-0 h-auto text-green-600">View</Button>

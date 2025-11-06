@@ -108,6 +108,11 @@ export const SUPERADMIN_SIDENAV_ITEMS = [
     ],
   },
   {
+    title: 'Leads',
+    path: '/superadmin/leads',
+    icon: <FolderKanban className="h-5 w-5" />,
+  },
+  {
     title: 'Leads Report',
     path: '/superadmin/reports',
     icon: <FileBarChart className="h-5 w-5" />,

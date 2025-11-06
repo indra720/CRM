@@ -75,6 +75,7 @@ import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
+import { toggleUserActiveStatus } from "@/lib/api";
 
 // Mock User Data for Team Leader view
 // const mockUsers = [
@@ -230,8 +231,8 @@ const UserDetailsDialog = ({ user, open, onOpenChange }: { user: any, open: bool
                     <ReviewDetailItem label="Name" value={user.name} />
                     <ReviewDetailItem label="Mobile No" value={user.mobile} />
                     <ReviewDetailItem label="Email" value={user.email} />
-                    <ReviewDetailItem label="Admin" value={user.admin?.name} />
-                    <ReviewDetailItem label="Created Date" value={new Date(user.created_date).toLocaleDateString()} />
+                    <ReviewDetailItem label="Admin" value={user.admin?.name || 'N/A'} />
+                    <ReviewDetailItem label="Created Date" value={user.created_date ? new Date(user.created_date).toLocaleDateString() : 'N/A'} />
                     <div className="flex justify-between items-center p-3 hover:bg-accent/50 transition-colors duration-200">
                       <p className="text-sm font-medium text-muted-foreground">Active Status</p>
                       <Switch
@@ -278,11 +279,17 @@ export default function TeamLeaderManagementPage() {
   });
 
   useEffect(() => {
-    const fetchcardData = async () => {
+    const fetchData = async () => {
       const token = localStorage.getItem("authToken");
+      console.log("Auth Token:", token);
+      if (!token) {
+        setError("Authentication token not found.");
+        setLoading(false);
+        return;
+      }
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/dashboard/team-leader/`,
           {
             headers: {
               Authorization: ` Token ${token}`,
@@ -294,6 +301,7 @@ export default function TeamLeaderManagementPage() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        setUsers(data.user_logs);
         setcardData(data);
       } catch (err: any) {
         setError(err.message);
@@ -302,7 +310,7 @@ export default function TeamLeaderManagementPage() {
       }
     };
 
-    fetchcardData();
+    fetchData();
   }, []);
 
 
@@ -377,20 +385,41 @@ export default function TeamLeaderManagementPage() {
   }, []);
 
   const handleToggle = async (id: number, isActive: boolean) => {
+    // 1. Optimistic UI Update
+    const originalUsers = [...users];
+    setUsers(
+      users.map((u) =>
+        u.id === id
+          ? { ...u, self_user: { ...u.self_user, user_active: isActive } }
+          : u
+      )
+    );
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setUsers(users.map(u => u.id === id ? {...u, self_user: {...u.self_user, user_active: isActive}} : u));
-       toast({
-        title: 'Status Updated',
-        description: `User status changed to ${isActive ? 'Active' : 'Inactive'}.`,
-        className: 'bg-blue-500 text-white'
-      });
-    } catch (error) {
-      console.error(error);
+      await toggleUserActiveStatus(id, "team_leader", isActive);
+
+      // 3. Success: Show toast
       toast({
-        title: 'Error',
-        description: 'Failed to update user status.',
-        variant: 'destructive',
+        title: "Status Updated",
+        description: `User status changed to ${
+          isActive ? "Active" : "Inactive"
+        }.`,
+        className: "bg-blue-500 text-white",
+        duration: 3000,
+      });
+
+      // Optional: Refetch in the background to ensure consistency
+      // fetchData(); // Use fetchData for this component
+    } catch (error: any) {
+      // 2. Failure: Revert state and show error
+      setUsers(originalUsers);
+      console.error("Failed to update user status:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update user status: ${
+          error.message || "Unknown error"
+        }`,
+        variant: "destructive",
       });
     }
   };
@@ -505,10 +534,10 @@ export default function TeamLeaderManagementPage() {
                   <TableRow key={user.id}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{user.admin.name}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{user.admin?.name || 'N/A'}</TableCell>
                     <TableCell className="hidden md:table-cell">{user.mobile}</TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {new Date(user.created_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')}
+                      {user.created_date ? new Date(user.created_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') : 'N/A'}
                     </TableCell>
                     <TableCell>
                         <select className="form-select form-select-sm w-full bg-background border border-input rounded-md px-2 py-1 text-sm" onChange={(e) => e.target.value && window.location.assign(e.target.value)}>

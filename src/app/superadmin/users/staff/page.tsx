@@ -76,6 +76,7 @@ import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
+import { toggleUserActiveStatus } from "@/lib/api";
 
 
 // Mock User Data
@@ -257,6 +258,7 @@ export default function StaffManagementPage() {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
  
@@ -333,16 +335,80 @@ export default function StaffManagementPage() {
     setFormData(initialFormData);
   }
   
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newUser = {...formData, id: Date.now(), created_date: new Date().toISOString(), self_user: { user_active: true }};
-    setUsers([...users, newUser]);
-    toast({
+    setIsSubmitting(true);
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Authentication token not found.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('email', formData.email);
+    data.append('password', formData.password);
+    data.append('team_leader', formData.teamLeader);
+    data.append('mobile', formData.mobile);
+    data.append('dob', formData.dob);
+    data.append('address', formData.address);
+    data.append('city', formData.city);
+    data.append('state', formData.state);
+    data.append('pincode', formData.pincode);
+    data.append('degree', formData.degree);
+    data.append('pancard', formData.pancard);
+    data.append('aadharCard', formData.aadharCard);
+    data.append('bank_name', formData.bank_name);
+    data.append('account_number', formData.account_number);
+    data.append('ifsc_code', formData.ifsc_code);
+    data.append('upi_id', formData.upi_id);
+    data.append('salary', formData.salary);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/add/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+          body: data,
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "An error occurred");
+      }
+
+      const newUser = await response.json();
+      setUsers([...users, newUser]);
+      toast({
         title: "Staff Added!",
         description: `${formData.name} has been added successfully.`,
-        className: 'bg-green-500 text-white'
-    });
-    handleCloseAddForm();
+        className: "bg-green-500 text-white",
+      });
+      handleCloseAddForm();
+    } catch (error: any) {
+      console.error("--- ERROR ---");
+      console.error(error);
+      console.error(error.message);
+      console.error("--- END ERROR ---");
+
+      toast({
+        title: "Error Occurred",
+        description: "An error occurred. Please check the console for more details.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -373,20 +439,41 @@ export default function StaffManagementPage() {
   }, []);
 
   const handleToggle = async (id: number, isActive: boolean) => {
+    // 1. Optimistic UI Update
+    const originalUsers = [...users];
+    setUsers(
+      users.map((u) =>
+        u.id === id
+          ? { ...u, self_user: { ...u.self_user, user_active: isActive } }
+          : u
+      )
+    );
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setUsers(users.map(u => u.id === id ? {...u, self_user: {...u.self_user, user_active: isActive}} : u));
-       toast({
-        title: 'Status Updated',
-        description: `User status changed to ${isActive ? 'Active' : 'Inactive'}.`,
-        className: 'bg-blue-500 text-white'
-      });
-    } catch (error) {
-      console.error(error);
+      await toggleUserActiveStatus(id, "staff", isActive);
+
+      // 3. Success: Show toast
       toast({
-        title: 'Error',
-        description: 'Failed to update user status.',
-        variant: 'destructive',
+        title: "Status Updated",
+        description: `User status changed to ${
+          isActive ? "Active" : "Inactive"
+        }.`,
+        className: "bg-blue-500 text-white",
+        duration: 3000,
+      });
+
+      // Optional: Refetch in the background to ensure consistency
+      // fetchData(); // Use fetchData for this component
+    } catch (error: any) {
+      // 2. Failure: Revert state and show error
+      setUsers(originalUsers);
+      console.error("Failed to update user status:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update user status: ${
+          error.message || "Unknown error"
+        }`,
+        variant: "destructive",
       });
     }
   };
@@ -689,7 +776,19 @@ export default function StaffManagementPage() {
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     ) : (
-                      <Button type="submit">Save Staff</Button>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Submitting...
+                          </>
+                        ) : (
+                          "Save Staff"
+                        )}
+                      </Button>
                     )}
                 </DialogFooter>
               </Tabs>

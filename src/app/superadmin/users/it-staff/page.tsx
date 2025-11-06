@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/table";
 import { Search } from "lucide-react";
 import { AttendanceDialog } from "./attendance-dialog";
+import { toggleUserActiveStatus } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ItStaffPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -59,12 +61,42 @@ export default function ItStaffPage() {
     fetchUsers();
   }, []);
 
-  const handleToggle = (id: number) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.staff_id === id ? { ...user, active: !user.active } : user
+  const handleToggle = async (id: number, isActive: boolean) => {
+    // 1. Optimistic UI Update
+    const originalUsers = [...users];
+    setUsers(
+      users.map((user) =>
+        user.staff_id === id ? { ...user, active: isActive } : user
       )
     );
+
+    try {
+      await toggleUserActiveStatus(id, "it_staff", isActive);
+
+      // 3. Success: Show toast (assuming useToast is available)
+      toast({
+        title: "Status Updated",
+        description: `User status changed to ${
+          isActive ? "Active" : "Inactive"
+        }.`,
+        className: "bg-blue-500 text-white",
+        duration: 3000,
+      });
+
+      // Optional: Refetch in the background to ensure consistency
+      // fetchUsers();
+    } catch (error: any) {
+      // 2. Failure: Revert state and show error
+      setUsers(originalUsers);
+      console.error("Failed to update user status:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update user status: ${
+          error.message || "Unknown error"
+        }`,
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredUsers = users.filter(

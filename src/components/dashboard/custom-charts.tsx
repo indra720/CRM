@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 
-export const BarChart = ({ data }: { data: any[] }) => (
+export const BarChart = ({ data = [] }: { data: any[] }) => (
   <ResponsiveContainer width="100%" height={400}>
     <RechartsBarChart data={data} margin={{ top: 5, right: 20, left: -20, bottom: 30 }}>
       <defs>
@@ -116,7 +116,7 @@ const renderActiveShape = (props: any) => {
   );
 };
 
-export const PieChart = ({ data }: { data: any[] }) => {
+export const PieChart = ({ data = [] }: { data: any[] }) => {
   const [activeIndex, setActiveIndex] = React.useState(0);
 
   const onPieEnter = (_: any, index: number) => {
@@ -148,7 +148,7 @@ export const PieChart = ({ data }: { data: any[] }) => {
   );
 };
 
-export const FreelancerChart = ({ data }: { data: any[] }) => (
+export const FreelancerChart = ({ data = [] }: { data: any[] }) => (
   <ResponsiveContainer width="100%" height={400}>
     <RechartsBarChart data={data} margin={{ top: 20, right: 20, left: -20, bottom: 40 }} barCategoryGap="20%">
       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
