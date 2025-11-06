@@ -73,72 +73,75 @@ import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
+import { toggleUserActiveStatus } from "@/lib/api";
 
 // Mock User Data for Team Leader view
-const mockUsers = [
-  {
-    id: 1,
-    name: 'teamlead',
-    mobile: '3216549870',
-    email: 'leader1@example.com',
-    admin: { name: 'admin' },
-    created_date: '2025-10-11T12:00:00.000Z',
-    self_user: { user_active: true },
-     dob: '1990-01-01',
-    address: '123 Leader St, Anytown',
-    city: 'Anytown',
-    state: 'Rajasthan',
-    pincode: '123456',
-    degree: 'B.Eng',
-    pancard: 'LEADR1234F',
-    aadharCard: '123456789012',
-    bank_name: 'State Bank of India',
-    account_number: '1234567890',
-    ifsc_code: 'SBIN000000',
-    upi_id: 'leader1@upi',
-    salary: '80000',
-    referralCode: 'LEAD123',
-    marksheets: null,
-  },
-   {
-    id: 2,
-    name: 'teamlead2',
-    mobile: '3216549871',
-    email: 'leader2@example.com',
-    admin: { name: 'admin' },
-    created_date: '2025-10-12T12:00:00.000Z',
-    self_user: { user_active: false },
-    dob: '1992-05-15',
-    address: '456 Oak Ave, Othertown',
-    city: 'Othertown',
-    state: 'Maharashtra',
-    pincode: '654321',
-    degree: 'M.B.A',
-    pancard: 'LEADR5678K',
-    aadharCard: '987654321098',
-    bank_name: 'HDFC Bank',
-    account_number: '0987654321',
-    ifsc_code: 'HDFC000000',
-    upi_id: 'leader2@upi',
-    salary: '95000',
-    referralCode: 'LEAD456',
-    marksheets: null,
-  },
-];
+// const mockUsers = [
+//   {
+//     id: 1,
+//     name: 'teamlead',
+//     mobile: '3216549870',
+//     email: 'leader1@example.com',
+//     admin: { name: 'admin' },
+//     created_date: '2025-10-11T12:00:00.000Z',
+//     self_user: { user_active: true },
+//      dob: '1990-01-01',
+//     address: '123 Leader St, Anytown',
+//     city: 'Anytown',
+//     state: 'Rajasthan',
+//     pincode: '123456',
+//     degree: 'B.Eng',
+//     pancard: 'LEADR1234F',
+//     aadharCard: '123456789012',
+//     bank_name: 'State Bank of India',
+//     account_number: '1234567890',
+//     ifsc_code: 'SBIN000000',
+//     upi_id: 'leader1@upi',
+//     salary: '80000',
+//     referralCode: 'LEAD123',
+//     marksheets: null,
+//   },
+//    {
+//     id: 2,
+//     name: 'teamlead2',
+//     mobile: '3216549871',
+//     email: 'leader2@example.com',
+//     admin: { name: 'admin' },
+//     created_date: '2025-10-12T12:00:00.000Z',
+//     self_user: { user_active: false },
+//     dob: '1992-05-15',
+//     address: '456 Oak Ave, Othertown',
+//     city: 'Othertown',
+//     state: 'Maharashtra',
+//     pincode: '654321',
+//     degree: 'M.B.A',
+//     pancard: 'LEADR5678K',
+//     aadharCard: '987654321098',
+//     bank_name: 'HDFC Bank',
+//     account_number: '0987654321',
+//     ifsc_code: 'HDFC000000',
+//     upi_id: 'leader2@upi',
+//     salary: '95000',
+//     referralCode: 'LEAD456',
+//     marksheets: null,
+//   },
+// ];
 
-const kpiCounts = {
-    total_pending_followup: 0,
-    total_tomorrow_followup: 0,
-    total_today_followup: 0,
-    total_leads: 0,
-    total_visit: 0,
-    total_interested: 0,
-    total_not_interested: 0,
-    total_other_location: 0,
-    total_not_picked: 0,
-    total_staff: 1,
-    active_staff: 0
-};
+// const kpiCounts = {
+//     total_pending_followup: 0,
+//     total_tomorrow_followup: 0,
+//     total_today_followup: 0,
+//     total_leads: 0,
+//     total_visit: 0,
+//     total_interested: 0,
+//     total_not_interested: 0,
+//     total_other_location: 0,
+//     total_not_picked: 0,
+//     total_staff: 1,
+//     active_staff: 0
+// };
 
 
 const kpiData = [
@@ -228,8 +231,8 @@ const UserDetailsDialog = ({ user, open, onOpenChange }: { user: any, open: bool
                     <ReviewDetailItem label="Name" value={user.name} />
                     <ReviewDetailItem label="Mobile No" value={user.mobile} />
                     <ReviewDetailItem label="Email" value={user.email} />
-                    <ReviewDetailItem label="Admin" value={user.admin?.name} />
-                    <ReviewDetailItem label="Created Date" value={new Date(user.created_date).toLocaleDateString()} />
+                    <ReviewDetailItem label="Admin" value={user.admin?.name || 'N/A'} />
+                    <ReviewDetailItem label="Created Date" value={user.created_date ? new Date(user.created_date).toLocaleDateString() : 'N/A'} />
                     <div className="flex justify-between items-center p-3 hover:bg-accent/50 transition-colors duration-200">
                       <p className="text-sm font-medium text-muted-foreground">Active Status</p>
                       <Switch
@@ -264,6 +267,52 @@ export default function TeamLeaderManagementPage() {
   const [activeTab, setActiveTab] = useState("personal");
 
   const { toast } = useToast();
+
+
+   //  teamleader card data
+  const [cardData, setcardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 7),
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("authToken");
+      console.log("Auth Token:", token);
+      if (!token) {
+        setError("Authentication token not found.");
+        setLoading(false);
+        return;
+      }
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/dashboard/team-leader/`,
+          {
+            headers: {
+              Authorization: ` Token ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setUsers(data.user_logs);
+        setcardData(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
 
   const handleAddFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -332,24 +381,45 @@ export default function TeamLeaderManagementPage() {
 
 
   useEffect(() => {
-    setUsers(mockUsers);
+    // setUsers(mockUsers);
   }, []);
 
   const handleToggle = async (id: number, isActive: boolean) => {
+    // 1. Optimistic UI Update
+    const originalUsers = [...users];
+    setUsers(
+      users.map((u) =>
+        u.id === id
+          ? { ...u, self_user: { ...u.self_user, user_active: isActive } }
+          : u
+      )
+    );
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setUsers(users.map(u => u.id === id ? {...u, self_user: {...u.self_user, user_active: isActive}} : u));
-       toast({
-        title: 'Status Updated',
-        description: `User status changed to ${isActive ? 'Active' : 'Inactive'}.`,
-        className: 'bg-blue-500 text-white'
-      });
-    } catch (error) {
-      console.error(error);
+      await toggleUserActiveStatus(id, "team_leader", isActive);
+
+      // 3. Success: Show toast
       toast({
-        title: 'Error',
-        description: 'Failed to update user status.',
-        variant: 'destructive',
+        title: "Status Updated",
+        description: `User status changed to ${
+          isActive ? "Active" : "Inactive"
+        }.`,
+        className: "bg-blue-500 text-white",
+        duration: 3000,
+      });
+
+      // Optional: Refetch in the background to ensure consistency
+      // fetchData(); // Use fetchData for this component
+    } catch (error: any) {
+      // 2. Failure: Revert state and show error
+      setUsers(originalUsers);
+      console.error("Failed to update user status:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update user status: ${
+          error.message || "Unknown error"
+        }`,
+        variant: "destructive",
       });
     }
   };
@@ -394,17 +464,24 @@ export default function TeamLeaderManagementPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Team Leader List</h1>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      {!loading && cardData ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {kpiData.map((card, index) => (
-              <KpiCard 
-                key={index} 
-                title={card.title} 
-                value={kpiCounts[card.valueKey as keyof typeof kpiCounts]}
-                icon={card.icon} 
-                color={card.color} 
-                link={card.link} />
+            <KpiCard
+              key={index}
+              title={card.title}
+              value={cardData?.[card.valueKey] ?? 0}
+              icon={card.icon}
+              color={card.color}
+              link={card.link}
+            />
           ))}
-      </div>
+        </div>
+      ) : (
+        <p className="text-center text-muted-foreground">
+          Loading dashboard...
+        </p>
+      )}
 
       <Card className="shadow-lg rounded-2xl">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -457,10 +534,10 @@ export default function TeamLeaderManagementPage() {
                   <TableRow key={user.id}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{user.admin.name}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{user.admin?.name || 'N/A'}</TableCell>
                     <TableCell className="hidden md:table-cell">{user.mobile}</TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {new Date(user.created_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')}
+                      {user.created_date ? new Date(user.created_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') : 'N/A'}
                     </TableCell>
                     <TableCell>
                         <select className="form-select form-select-sm w-full bg-background border border-input rounded-md px-2 py-1 text-sm" onChange={(e) => e.target.value && window.location.assign(e.target.value)}>
@@ -585,7 +662,7 @@ export default function TeamLeaderManagementPage() {
                               <InputField id="dob" label="Date of Birth" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleAddFormChange} />
                               <InputField id="pancard" label="Pan Card" name="pancard" placeholder="ABCDE1234F" icon={CreditCard} value={formData.pancard} onChange={handleAddFormChange} />
                               <InputField id="aadharCard" label="Aadhar Card" name="aadharCard" placeholder="1234 5678 9012" icon={Fingerprint} value={formData.aadharCard} onChange={handleAddFormChange} />
-                              <InputField id="marksheets" label="MarkSheets" name="marksheets" type="file" icon={FileText} onChange={handleAddFormChange} />
+                              <InputField id="marksheets" label="MarkSheets" name="marksheets" type="file" icon={FileText} onChange={handleAddFormChange} value={''} />
                               <InputField id="degree" label="Degree" name="degree" placeholder="B.Tech, M.Sc" icon={GraduationCap} value={formData.degree} onChange={handleAddFormChange} />
                               <InputField id="city" label="City" name="city" placeholder="e.g. Mumbai" icon={Building2} value={formData.city} onChange={handleAddFormChange} />
                               <InputField id="state" label="State" name="state" value={formData.state} onChange={handleAddFormChange}>

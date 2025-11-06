@@ -74,70 +74,73 @@ import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
+import { toggleUserActiveStatus } from "@/lib/api";
 
 
 // Mock User Data
-const mockUsers = [
-  {
-    id: 1,
-    name: 'staff',
-    teamLeader: 'teamlead',
-    mobile: '9632587410',
-    created_date: '2025-10-11T12:00:00.000Z',
-    self_user: { user_active: true },
-    email: 'staff1@example.com',
-    password: 'password123',
-    dob: '1995-01-01',
-    address: '789 Staff St, Worktown',
-    city: 'Worktown',
-    state: 'Gujarat',
-    pincode: '987654',
-    degree: 'B.Com',
-    pancard: 'STAFF1234F',
-    aadharCard: '567890123456',
-    bank_name: 'Axis Bank',
-    account_number: '5678901234',
-    ifsc_code: 'UTIB000000',
-    upi_id: 'staff1@upi',
-    salary: '30000',
-    referralCode: 'STAFF123',
-  },
-   {
-    id: 2,
-    name: 'staff2',
-    teamLeader: 'teamlead',
-    mobile: '9876543211',
-    created_date: '2025-10-12T12:00:00.000Z',
-    self_user: { user_active: false },
-    email: 'staff2@example.com',
-    password: 'password456',
-    dob: '1998-05-15',
-    address: '101 Staff Ave, Jobville',
-    city: 'Jobville',
-    state: 'Maharashtra',
-    pincode: '456789',
-    degree: 'B.A',
-    pancard: 'STAFF5678K',
-    aadharCard: '678901234567',
-    bank_name: 'ICICI Bank',
-    account_number: '6789012345',
-    ifsc_code: 'ICIC000000',
-    upi_id: 'staff2@upi',
-    salary: '35000',
-    referralCode: 'STAFF456',
-  },
-];
+// const mockUsers = [
+//   {
+//     id: 1,
+//     name: 'staff',
+//     teamLeader: 'teamlead',
+//     mobile: '9632587410',
+//     created_date: '2025-10-11T12:00:00.000Z',
+//     self_user: { user_active: true },
+//     email: 'staff1@example.com',
+//     password: 'password123',
+//     dob: '1995-01-01',
+//     address: '789 Staff St, Worktown',
+//     city: 'Worktown',
+//     state: 'Gujarat',
+//     pincode: '987654',
+//     degree: 'B.Com',
+//     pancard: 'STAFF1234F',
+//     aadharCard: '567890123456',
+//     bank_name: 'Axis Bank',
+//     account_number: '5678901234',
+//     ifsc_code: 'UTIB000000',
+//     upi_id: 'staff1@upi',
+//     salary: '30000',
+//     referralCode: 'STAFF123',
+//   },
+//    {
+//     id: 2,
+//     name: 'staff2',
+//     teamLeader: 'teamlead',
+//     mobile: '9876543211',
+//     created_date: '2025-10-12T12:00:00.000Z',
+//     self_user: { user_active: false },
+//     email: 'staff2@example.com',
+//     password: 'password456',
+//     dob: '1998-05-15',
+//     address: '101 Staff Ave, Jobville',
+//     city: 'Jobville',
+//     state: 'Maharashtra',
+//     pincode: '456789',
+//     degree: 'B.A',
+//     pancard: 'STAFF5678K',
+//     aadharCard: '678901234567',
+//     bank_name: 'ICICI Bank',
+//     account_number: '6789012345',
+//     ifsc_code: 'ICIC000000',
+//     upi_id: 'staff2@upi',
+//     salary: '35000',
+//     referralCode: 'STAFF456',
+//   },
+// ];
 
-// Mock data counts for the KPI cards
-const kpiCounts = {
-    total_leads: 15,
-    total_visit: 2,
-    interested: 2,
-    not_interested: 2,
-    other_location: 1,
-    not_picked: 2,
-    total_earning: "0.00"
-};
+// // Mock data counts for the KPI cards
+// const kpiCounts = {
+//     total_leads: 15,
+//     total_visit: 2,
+//     interested: 2,
+//     not_interested: 2,
+//     other_location: 1,
+//     not_picked: 2,
+//     total_earning: "0.00"
+// };
 
 
 const kpiData = [
@@ -255,8 +258,46 @@ export default function StaffManagementPage() {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
+ 
+  // staff teamleader card data 
+  const [cardData, setcardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 7),
+  });
+
+  useEffect(() => {
+    const fetchcardData = async () => {
+      const token = localStorage.getItem("authToken");
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`,
+          {
+            headers: {
+              Authorization: ` Token ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setcardData(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchcardData();
+  }, []);
 
 
   const handleAddFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -294,16 +335,80 @@ export default function StaffManagementPage() {
     setFormData(initialFormData);
   }
   
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newUser = {...formData, id: Date.now(), created_date: new Date().toISOString(), self_user: { user_active: true }};
-    setUsers([...users, newUser]);
-    toast({
+    setIsSubmitting(true);
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Authentication token not found.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('email', formData.email);
+    data.append('password', formData.password);
+    data.append('team_leader', formData.teamLeader);
+    data.append('mobile', formData.mobile);
+    data.append('dob', formData.dob);
+    data.append('address', formData.address);
+    data.append('city', formData.city);
+    data.append('state', formData.state);
+    data.append('pincode', formData.pincode);
+    data.append('degree', formData.degree);
+    data.append('pancard', formData.pancard);
+    data.append('aadharCard', formData.aadharCard);
+    data.append('bank_name', formData.bank_name);
+    data.append('account_number', formData.account_number);
+    data.append('ifsc_code', formData.ifsc_code);
+    data.append('upi_id', formData.upi_id);
+    data.append('salary', formData.salary);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/add/`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+          body: data,
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "An error occurred");
+      }
+
+      const newUser = await response.json();
+      setUsers([...users, newUser]);
+      toast({
         title: "Staff Added!",
         description: `${formData.name} has been added successfully.`,
-        className: 'bg-green-500 text-white'
-    });
-    handleCloseAddForm();
+        className: "bg-green-500 text-white",
+      });
+      handleCloseAddForm();
+    } catch (error: any) {
+      console.error("--- ERROR ---");
+      console.error(error);
+      console.error(error.message);
+      console.error("--- END ERROR ---");
+
+      toast({
+        title: "Error Occurred",
+        description: "An error occurred. Please check the console for more details.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -330,24 +435,45 @@ export default function StaffManagementPage() {
 
 
   useEffect(() => {
-    setUsers(mockUsers);
+    // setUsers(mockUsers);
   }, []);
 
   const handleToggle = async (id: number, isActive: boolean) => {
+    // 1. Optimistic UI Update
+    const originalUsers = [...users];
+    setUsers(
+      users.map((u) =>
+        u.id === id
+          ? { ...u, self_user: { ...u.self_user, user_active: isActive } }
+          : u
+      )
+    );
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setUsers(users.map(u => u.id === id ? {...u, self_user: {...u.self_user, user_active: isActive}} : u));
-       toast({
-        title: 'Status Updated',
-        description: `User status changed to ${isActive ? 'Active' : 'Inactive'}.`,
-        className: 'bg-blue-500 text-white'
-      });
-    } catch (error) {
-      console.error(error);
+      await toggleUserActiveStatus(id, "staff", isActive);
+
+      // 3. Success: Show toast
       toast({
-        title: 'Error',
-        description: 'Failed to update user status.',
-        variant: 'destructive',
+        title: "Status Updated",
+        description: `User status changed to ${
+          isActive ? "Active" : "Inactive"
+        }.`,
+        className: "bg-blue-500 text-white",
+        duration: 3000,
+      });
+
+      // Optional: Refetch in the background to ensure consistency
+      // fetchData(); // Use fetchData for this component
+    } catch (error: any) {
+      // 2. Failure: Revert state and show error
+      setUsers(originalUsers);
+      console.error("Failed to update user status:", error);
+      toast({
+        title: "Error",
+        description: `Failed to update user status: ${
+          error.message || "Unknown error"
+        }`,
+        variant: "destructive",
       });
     }
   };
@@ -389,18 +515,24 @@ export default function StaffManagementPage() {
   return (
     <div className="space-y-6">
         <h1 className="text-2xl font-bold tracking-tight">Staff Users</h1>
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-            {kpiData.map((card, index) => (
-                <KpiCard 
-                  key={index} 
-                  title={card.title} 
-                  value={kpiCounts[card.valueKey as keyof typeof kpiCounts]}
-                  icon={card.icon}
-                  color={card.color}
-                  link={card.link}
-                />
-            ))}
+        {!loading && cardData ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {kpiData.map((card, index) => (
+            <KpiCard
+              key={index}
+              title={card.title}
+              value={cardData?.[card.valueKey] ?? 0}
+              icon={card.icon}
+              color={card.color}
+              link={card.link}
+            />
+          ))}
         </div>
+      ) : (
+        <p className="text-center text-muted-foreground">
+          Loading dashboard...
+        </p>
+      )}
 
       <Card className="shadow-lg rounded-2xl">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -644,7 +776,19 @@ export default function StaffManagementPage() {
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     ) : (
-                      <Button type="submit">Save Staff</Button>
+                      <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Submitting...
+                          </>
+                        ) : (
+                          "Save Staff"
+                        )}
+                      </Button>
                     )}
                 </DialogFooter>
               </Tabs>

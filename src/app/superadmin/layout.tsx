@@ -2,7 +2,7 @@
 
 import { SuperAdminSidebar } from '@/components/layout/superadmin-sidebar';
 import { Header } from '@/components/layout/header';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 export default function SuperAdminLayout({
   children,

@@ -108,6 +108,11 @@ export const SUPERADMIN_SIDENAV_ITEMS = [
     ],
   },
   {
+    title: 'Leads',
+    path: '/superadmin/leads',
+    icon: <FolderKanban className="h-5 w-5" />,
+  },
+  {
     title: 'Leads Report',
     path: '/superadmin/reports',
     icon: <FileBarChart className="h-5 w-5" />,
@@ -259,11 +264,6 @@ export const TEAM_LEADER_SIDENAV_ITEMS = [
 ];
 
 export const STAFF_DASHBOARD_KPI_DATA = [
-    { title: "Pending FollowUps", valueKey: "pending_followups", icon: Clock, color: "text-yellow-500", link: "/staff/reports/pending-followups" },
-    { title: "Tomorrow FollowUps", valueKey: "tomorrow_followups", icon: Phone, color: "text-blue-500", link: "/staff/reports/tomorrow-followups" },
-    { title: "Today FollowUps", valueKey: "today_followups", icon: Phone, color: "text-purple-500", link: "/staff/reports/today-followups" },
-    { title: "Upload Leads", valueKey: "upload_leads", icon: FileUp, color: "text-sky-500", link: "/staff/reports/upload-leads" },
-    { title: "Remaining Leads", valueKey: "remaining_leads", icon: Users, color: "text-indigo-500", link: "/staff/reports/remaining-leads"},
     { title: "Total Lead", valueKey: "total_lead", icon: Users, color: "text-rose-500", link: "/staff/reports/total-leads" },
     { title: "Total Visits", valueKey: "total_visits", icon: Eye, color: "text-green-500", link: "/staff/reports/visit" },
     { title: "Interested", valueKey: "interested", icon: Check, color: "text-teal-500", link: "/staff/reports/interested" },

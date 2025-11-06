@@ -269,7 +269,7 @@ const LoginPage = () => {
             router.push('/team-leader/productivity/staff');
             break;
         case "staff":
-            router.push('/staff');
+            router.push('/staff/dashboard');
             break;
         case "freelancer":
             router.push('/freelancer/dashboard'); // Assuming /freelancer/dashboard for freelancer
