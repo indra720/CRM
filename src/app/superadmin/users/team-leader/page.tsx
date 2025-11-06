@@ -393,7 +393,7 @@ export default function TeamLeaderManagementPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Team Leader List</h1>
+      <h1 className="text-2xl font-semibold  tracking-tight">Team Leader List</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {kpiData.map((card, index) => (
               <KpiCard 
@@ -406,7 +406,9 @@ export default function TeamLeaderManagementPage() {
           ))}
       </div>
 
-      <Card className="shadow-lg rounded-2xl">
+{/* change card and add div */}
+<div className='grid gap-4 lg:grid-cols-7'>
+      <Card className="shadow-lg rounded-2xl lg:col-span-7 overflow-hidden">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <CardTitle>Team Leaders</CardTitle>
@@ -437,26 +439,26 @@ export default function TeamLeaderManagementPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto rounded-lg border">
-            <Table>
+       <CardContent className='p-2 md:p-2 md:pt-0'>
+                 <div className="overflow-x-auto rounded-lg border">
+                   <Table className='min-w-[600px] md:min-w-[900px]  '>
               <TableHeader>
                 <TableRow>
-                  <TableHead>S.N.</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="hidden sm:table-cell">Admin</TableHead>
-                  <TableHead className="hidden md:table-cell">Mobile No</TableHead>
-                  <TableHead className="hidden lg:table-cell">Created Date</TableHead>
-                  <TableHead>Leads Report</TableHead>
-                  <TableHead className="text-center">Active/Non-Active</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className='min-w-[100px] md:min-w-0'>S.N.</TableHead>
+                  <TableHead className='min-w-[100px] md:min-w-0'>Name</TableHead>
+                  <TableHead className="hidden sm:table-cell min-w-[100px] md:min-w-0">Admin</TableHead>
+                  <TableHead className="hidden md:table-cell min-w-[100px] md:min-w-0">Mobile No</TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[100px] md:min-w-0">Created Date</TableHead>
+                  <TableHead className='min-w-[100px] md:min-w-0'>Leads Report</TableHead>
+                  <TableHead className="text-center min-w-[100px] md:min-w-0">Active/Non-Active</TableHead>
+                  <TableHead className="text-right min-w-[100px] md:min-w-0">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user, index) => (
                   <TableRow key={user.id}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell className="font-normal">{user.name}</TableCell>
                     <TableCell className="hidden sm:table-cell">{user.admin.name}</TableCell>
                     <TableCell className="hidden md:table-cell">{user.mobile}</TableCell>
                     <TableCell className="hidden lg:table-cell">
@@ -550,6 +552,7 @@ export default function TeamLeaderManagementPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
 
     <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 rounded-2xl shadow-2xl flex flex-col">
@@ -585,7 +588,7 @@ export default function TeamLeaderManagementPage() {
                               <InputField id="dob" label="Date of Birth" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleAddFormChange} />
                               <InputField id="pancard" label="Pan Card" name="pancard" placeholder="ABCDE1234F" icon={CreditCard} value={formData.pancard} onChange={handleAddFormChange} />
                               <InputField id="aadharCard" label="Aadhar Card" name="aadharCard" placeholder="1234 5678 9012" icon={Fingerprint} value={formData.aadharCard} onChange={handleAddFormChange} />
-                              <InputField id="marksheets" label="MarkSheets" name="marksheets" type="file" icon={FileText} onChange={handleAddFormChange} />
+                              <InputField id="marksheets" label="MarkSheets" name="marksheets" type="file" icon={FileText} onChange={handleAddFormChange} value={''} />
                               <InputField id="degree" label="Degree" name="degree" placeholder="B.Tech, M.Sc" icon={GraduationCap} value={formData.degree} onChange={handleAddFormChange} />
                               <InputField id="city" label="City" name="city" placeholder="e.g. Mumbai" icon={Building2} value={formData.city} onChange={handleAddFormChange} />
                               <InputField id="state" label="State" name="state" value={formData.state} onChange={handleAddFormChange}>
@@ -644,40 +647,146 @@ export default function TeamLeaderManagementPage() {
         </DialogContent>
     </Dialog>
 
-    {editingUser && (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="w-[95vw] sm:max-w-lg rounded-xl">
-          <DialogHeader className="p-6 pb-4 text-center bg-muted/20 border-b border-border">
-            <DialogTitle className="text-2xl font-bold text-foreground">Edit Team Leader</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Update the details for <span className="font-semibold">{editingUser.name}</span>.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleEditSubmit} className="space-y-4 p-6">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Name</Label>
-              <Input id="edit-name" name="name" value={editingUser.name} onChange={handleEditFormChange} required className="h-11" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input id="edit-email" name="email" type="email" value={editingUser.email} onChange={handleEditFormChange} required className="h-11" />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="edit-mobile">Mobile</Label>
-              <Input id="edit-mobile" name="mobile" value={editingUser.mobile} onChange={handleEditFormChange} required className="h-11" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-password">New Password (optional)</Label>
-              <Input id="edit-password" name="password" type="password" placeholder="Leave blank to keep current password" onChange={handleEditFormChange} className="h-11" />
-            </div>
-            <DialogFooter className="flex flex-row justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsEditFormOpen(false)} className="rounded-md">Cancel</Button>
-              <Button type="submit" size="sm" className="rounded-md">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    )}
+   {editingUser && (
+  <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
+    <DialogContent
+      className="
+        w-[92vw] sm:max-w-md 
+        rounded-2xl shadow-xl border border-orange-200 
+        bg-white/95 backdrop-blur-sm 
+        transition-all duration-300
+      "
+    >
+      {/* Header */}
+      <DialogHeader className="p-6 pb-1 text-center bg-orange-50/60 border-b border-orange-100 rounded-t-2xl">
+        <DialogTitle className="text-xl font-semibold text-gray-800">
+          ✏️ Edit Team Leader
+        </DialogTitle>
+        <DialogDescription className="text-sm text-gray-500">
+          Update the details for{" "}
+          <span className="font-semibold text-orange-600">{editingUser.name}</span>.
+        </DialogDescription>
+      </DialogHeader>
+
+      {/* Form */}
+      <form onSubmit={handleEditSubmit} className="space-y-2 p-2 md:p-5">
+        {/* Name */}
+        <div className="space-y-1.5">
+          <Label htmlFor="edit-name" className="text-sm text-gray-700 font-medium">
+            Name
+          </Label>
+          <Input
+            id="edit-name"
+            name="name"
+            value={editingUser.name}
+            onChange={handleEditFormChange}
+            required
+            className="
+              h-9 rounded-lg border-gray-300 
+              focus:ring-2 focus:ring-orange-400 
+              transition-all duration-300
+            "
+          />
+        </div>
+
+        {/* Email */}
+        <div className="space-y-1.5">
+          <Label htmlFor="edit-email" className="text-sm text-gray-700 font-medium">
+            Email
+          </Label>
+          <Input
+            id="edit-email"
+            name="email"
+            type="email"
+            value={editingUser.email}
+            onChange={handleEditFormChange}
+            required
+            className="
+              h-9 rounded-lg border-gray-300 
+              focus:ring-2 focus:ring-orange-400 
+              transition-all duration-300
+            "
+          />
+        </div>
+
+        {/* Mobile */}
+        <div className="space-y-1.5">
+          <Label htmlFor="edit-mobile" className="text-sm text-gray-700 font-medium">
+            Mobile
+          </Label>
+          <Input
+            id="edit-mobile"
+            name="mobile"
+            value={editingUser.mobile}
+            onChange={handleEditFormChange}
+            required
+            className="
+              h-9 rounded-lg border-gray-300 
+              focus:ring-2 focus:ring-orange-400 
+              transition-all duration-300
+            "
+          />
+        </div>
+
+        {/* Password */}
+        <div className="space-y-1.5">
+          <Label htmlFor="edit-password" className="text-sm text-gray-700 font-medium">
+            New Password <span className="text-gray-400">(optional)</span>
+          </Label>
+          <Input
+            id="edit-password"
+            name="password"
+            type="password"
+            placeholder="Leave blank to keep current password"
+            onChange={handleEditFormChange}
+            className="
+              h-9 rounded-lg border-gray-300 
+              focus:ring-2 focus:ring-orange-400 
+              transition-all duration-300
+            "
+          />
+        </div>
+
+        {/* Footer */}
+        <DialogFooter
+          className="
+            flex justify-center gap-3 pt-4 border-t border-gray-200 mt-2
+          "
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditFormOpen(false)}
+            className="
+              h-8 px-4 text-sm font-medium 
+              rounded-lg border-orange-300 text-gray-700
+              hover:bg-orange-50 
+              transition-all duration-300 ease-in-out
+            "
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            size="sm"
+            className="
+              h-8 px-4 text-sm font-medium 
+              rounded-lg bg-orange-500 text-white 
+              hover:bg-orange-600 
+              shadow-md 
+              transition-all duration-300 ease-in-out
+              focus:outline-none
+            "
+          >
+            Save Changes
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  </Dialog>
+)}
+
       
       {selectedUser && (
         <UserDetailsDialog 

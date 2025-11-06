@@ -170,12 +170,12 @@ export function SuperAdminSidebar({ isSidebarOpen, setSidebarOpen, isCollapsed, 
   };
 
   const SidebarHeader = ({ isCollapsed, setIsCollapsed }: { isCollapsed: boolean, setIsCollapsed: (collapsed: boolean) => void }) => (
-    <div className={cn("flex items-center h-20 border-b border-sidebar-border", isCollapsed ? "justify-center" : "px-4 justify-between")}>
+    <div className={cn("flex items-center  h-20 border-b border-sidebar-border", isCollapsed ? "justify-center" : "px-4 justify-between")}>
       <div className="flex items-center">
           <Avatar className="h-10 w-10">
             <AvatarFallback className="bg-orange-500 text-white">SA</AvatarFallback>
           </Avatar>
-        {!isCollapsed && <h1 className="ml-3 text-2xl font-bold text-white">Super Admin</h1>}
+        {!isCollapsed && <h1 className="ml-3 text-xl font-bold text-white">Super Admin</h1>}
       </div>
       {!isCollapsed && (
         <Button onClick={() => setIsCollapsed(true)} variant="ghost" className="hidden lg:flex justify-center h-8 w-8 p-0 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground">

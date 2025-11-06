@@ -67,12 +67,14 @@ export default function ItStaffPage() {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-      <h1 className="text-2xl font-bold tracking-tight">IT Staff Users</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">IT Staff Users</h1>
 
-      <Card className="shadow-lg rounded-2xl flex-1 flex flex-col">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
+      <div className='grid gap-4 lg:grid-cols-7'>
+            <Card className="shadow-lg rounded-2xl lg:col-span-7 overflow-hidden">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  
+          <div className="flex flex-col md:flex-row gap-4 md: md:items-center md:justify-between w-full">
+            <div className='flex flex-col gap-1'>
               <CardTitle>All IT Staff</CardTitle>
               <CardDescription>Manage IT staff members.</CardDescription>
             </div>
@@ -87,16 +89,16 @@ export default function ItStaffPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0 flex-1">
-          <div className="overflow-x-auto h-full">
-            <Table>
+      <CardContent className='p-2 md:p-2 md:pt-0'>
+                <div className="overflow-x-auto rounded-lg border">
+                  <Table className='min-w-[600px] md:min-w-[900px]  '>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-base md:text-sm">SR. NO</TableHead>
-                  <TableHead className="text-base md:text-sm">Name</TableHead>
-                  <TableHead className="text-base md:text-sm">Mobile No</TableHead>
-                  <TableHead className="text-center text-base md:text-sm">Active / Non-Active</TableHead>
-                  <TableHead className="text-center text-base md:text-sm">Attendance</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">SR. NO</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Name</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Mobile No</TableHead>
+                  <TableHead className="text-center text-base md:text-sm min-w-[100px] md:min-w-0">Active / Non-Active</TableHead>
+                  <TableHead className="text-center text-base md:text-sm min-w-[100px] md:min-w-0">Attendance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -104,7 +106,7 @@ export default function ItStaffPage() {
                   filteredUsers.map((user, index) => (
                     <TableRow key={user.id}>
                       <TableCell className="text-base md:text-sm">{index + 1}</TableCell>
-                      <TableCell className="font-medium text-base md:text-sm">{user.name}</TableCell>
+                      <TableCell className="font-normal text-base md:text-sm">{user.name}</TableCell>
                       <TableCell className="text-base md:text-sm">{user.mobile}</TableCell>
                       <TableCell className="text-center">
                         <Switch
@@ -135,6 +137,7 @@ export default function ItStaffPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

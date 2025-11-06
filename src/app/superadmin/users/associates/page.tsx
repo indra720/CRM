@@ -260,15 +260,18 @@ export default function AssociatesPage() {
 
   const KpiCard = ({ title, value, icon, color, link }: { title: string, value: string | number, icon: React.ElementType, color: string, link?: string }) => {
     const cardContent = (
-       <Card className="shadow-lg rounded-2xl hover:shadow-xl transition-shadow duration-300">
-        <CardContent className="p-3 flex flex-col items-center justify-center text-center">
-          <div className={`text-3xl ${color} mb-1`}>
-            {React.createElement(icon, { className: "h-6 w-6" })}
-          </div>
-          <div className="font-semibold text-foreground text-sm">{title}</div>
-          <div className="text-muted-foreground text-xs mt-1">{value}</div>
-        </CardContent>
-      </Card>
+
+      // change card size
+     <Card className="h-28 w-full shadow-md rounded-xl hover:shadow-lg transition-all duration-300 bg-white/5 border border-white/10">
+  <CardContent className="p-2 flex flex-col items-center justify-center text-center h-full">
+    <div className={`text-2xl ${color} mb-1`}>
+      {React.createElement(icon, { className: "h-5 w-5" })}
+    </div>
+    <div className="font-medium text-foreground text-sm">{title}</div>
+    <div className="text-muted-foreground text-[11px] mt-0.5">{value}</div>
+  </CardContent>
+</Card>
+
     );
 
     if (link) {
@@ -279,8 +282,8 @@ export default function AssociatesPage() {
   };
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
-        <h1 className="text-2xl font-bold tracking-tight">Associate Users</h1>
+    <div className="space-y-5 flex flex-col h-full ">
+        <h1 className="text-2xl font-semibold tracking-tight">Associate Users</h1>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {kpiData.map((card, index) => (
                 <KpiCard 
@@ -294,7 +297,9 @@ export default function AssociatesPage() {
             ))}
         </div>
 
-      <Card className="shadow-lg rounded-2xl flex-1 flex flex-col">
+         {/* add div and change cardheader or cardcontent */}
+<div className='grid gap-4 lg:grid-cols-7'>
+      <Card className="shadow-lg rounded-2xl lg:col-span-7 overflow-hidden">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <CardTitle>Associate List</CardTitle>
@@ -310,30 +315,32 @@ export default function AssociatesPage() {
                 />
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
+
+           
           </div>
         </CardHeader>
-        <CardContent className="p-0 flex-1">
-          <div className="overflow-x-auto h-full">
-            <Table>
+        <CardContent className="p-2 md:p-2 md:pt-0">
+          <div className="overflow-x-auto rounded-lg border">
+            <Table className='min-w-[600px] md:min-w-[900px]'>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-base md:text-sm">SR. NO</TableHead>
-                  <TableHead className="text-base md:text-sm">Name</TableHead>
-                  <TableHead className="hidden sm:table-cell text-base md:text-sm">Team Lead</TableHead>
-                  <TableHead className="hidden md:table-cell text-base md:text-sm">Mobile No</TableHead>
-                  <TableHead className="hidden lg:table-cell text-base md:text-sm">Created Date</TableHead>
-                  <TableHead className="text-base md:text-sm">Leads</TableHead>
-                  <TableHead className="text-base md:text-sm">Active/Non-Active</TableHead>
-                  <TableHead className="text-base md:text-sm">Earn</TableHead>
-                  <TableHead className="text-base md:text-sm">Add Sell</TableHead>
-                  <TableHead className="text-right text-base md:text-sm">Actions</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">SR. NO</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Name</TableHead>
+                  <TableHead className="hidden sm:table-cell text-base md:text-sm min-w-[100px] md:min-w-0">Team Lead</TableHead>
+                  <TableHead className="hidden md:table-cell text-base md:text-sm min-w-[100px] md:min-w-0">Mobile No</TableHead>
+                  <TableHead className="hidden lg:table-cell text-base md:text-sm min-w-[100px] md:min-w-0">Created Date</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Leads</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Active/Non-Active</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Earn</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Add Sell</TableHead>
+                  <TableHead className="text-right text-base md:text-sm min-w-[100px] md:min-w-0">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user, index) => (
                   <TableRow key={user.id}>
                     <TableCell className="text-base md:text-sm">{index + 1}</TableCell>
-                    <TableCell className="font-medium text-base md:text-sm">{user.name}</TableCell>
+                    <TableCell className="font-normal text-base md:text-sm">{user.name}</TableCell>
                     <TableCell className="hidden sm:table-cell text-base md:text-sm">{user.teamLeader}</TableCell>
                     <TableCell className="hidden md:table-cell text-base md:text-sm">{user.mobile}</TableCell>
                     <TableCell className="hidden lg:table-cell text-base md:text-sm">
@@ -415,6 +422,7 @@ export default function AssociatesPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
 
     <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="sm:max-w-md">
@@ -460,53 +468,159 @@ export default function AssociatesPage() {
         </DialogContent>
     </Dialog>
 
-    {editingUser && (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Associate</DialogTitle>
-            <DialogDescription>
-              Update the details for {editingUser.name}.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleEditSubmit} className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Name</Label>
-              <Input id="edit-name" name="name" value={editingUser.name} onChange={handleEditFormChange} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input id="edit-email" name="email" type="email" value={editingUser.email} onChange={handleEditFormChange} required />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="edit-mobile">Mobile</Label>
-              <Input id="edit-mobile" name="mobile" value={editingUser.mobile} onChange={handleEditFormChange} required />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="edit-teamLeader">Team Leader</Label>
-                <Select onValueChange={(value) => handleEditSelectChange("teamLeader", value)} name="teamLeader" defaultValue={editingUser.teamLeader}>
-                    <SelectTrigger id="edit-teamLeader">
-                        <SelectValue placeholder="Select Team Leader" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Pooja Mehta">Pooja Mehta</SelectItem>
-                        <SelectItem value="Anita Das">Anita Das</SelectItem>
-                        <SelectItem value="Rajiv Verma">Rajiv Verma</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-password">New Password (optional)</Label>
-              <Input id="edit-password" name="password" type="password" placeholder="Leave blank to keep current password" onChange={handleEditFormChange} />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsEditFormOpen(false)}>Cancel</Button>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    )}
+  {editingUser && (
+  <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
+    <DialogContent
+      className="
+        w-[90%] sm:max-w-md
+        bg-gradient-to-b from-white to-gray-50
+        rounded-2xl shadow-2xl border border-gray-200
+        p-5 sm:p-6
+        transition-all duration-300
+      "
+    >
+      {/* Header */}
+      <DialogHeader className="text-center space-y-1">
+        <DialogTitle className="text-lg font-semibold text-gray-800">
+          ✏️ Edit Associate
+        </DialogTitle>
+        <DialogDescription className="text-sm text-gray-500">
+          Update the details for{" "}
+          <span className="font-medium text-gray-800">{editingUser.name}</span>.
+        </DialogDescription>
+      </DialogHeader>
+
+      {/* Form */}
+      <form onSubmit={handleEditSubmit} className="mt-4 space-y-3">
+        {/* Name */}
+        <div className="space-y-1">
+          <Label htmlFor="edit-name" className="text-sm font-medium text-gray-700">
+            Name
+          </Label>
+          <Input
+            id="edit-name"
+            name="name"
+            value={editingUser.name}
+            onChange={handleEditFormChange}
+            required
+            className="h-9 text-sm rounded-lg border-gray-300 focus:outline-none"
+          />
+        </div>
+
+        {/* Email */}
+        <div className="space-y-1">
+          <Label htmlFor="edit-email" className="text-sm font-medium text-gray-700">
+            Email
+          </Label>
+          <Input
+            id="edit-email"
+            name="email"
+            type="email"
+            value={editingUser.email}
+            onChange={handleEditFormChange}
+            required
+            className="h-9 text-sm rounded-lg border-gray-300 focus:outline-none"
+          />
+        </div>
+
+        {/* Mobile */}
+        <div className="space-y-1">
+          <Label htmlFor="edit-mobile" className="text-sm font-medium text-gray-700">
+            Mobile
+          </Label>
+          <Input
+            id="edit-mobile"
+            name="mobile"
+            value={editingUser.mobile}
+            onChange={handleEditFormChange}
+            required
+            className="h-9 text-sm rounded-lg border-gray-300 focus:outline-none"
+          />
+        </div>
+
+        {/* Team Leader */}
+        <div className="space-y-1">
+          <Label htmlFor="edit-teamLeader" className="text-sm font-medium text-gray-700">
+            Team Leader
+          </Label>
+          <Select
+            onValueChange={(value) => handleEditSelectChange("teamLeader", value)}
+            name="teamLeader"
+            defaultValue={editingUser.teamLeader}
+          >
+            <SelectTrigger
+              id="edit-teamLeader"
+              className="h-9 text-sm rounded-lg border-gray-300 focus:outline-none"
+            >
+              <SelectValue placeholder="Select Team Leader" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Pooja Mehta">Pooja Mehta</SelectItem>
+              <SelectItem value="Anita Das">Anita Das</SelectItem>
+              <SelectItem value="Rajiv Verma">Rajiv Verma</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Password */}
+        <div className="space-y-1">
+          <Label htmlFor="edit-password" className="text-sm font-medium text-gray-700">
+            New Password <span className="text-gray-400">(optional)</span>
+          </Label>
+          <Input
+            id="edit-password"
+            name="password"
+            type="password"
+            placeholder="Leave blank to keep current password"
+            onChange={handleEditFormChange}
+            className="h-9 text-sm rounded-lg border-gray-300 placeholder:text-xs focus:outline-none"
+          />
+        </div>
+
+        {/* Footer */}
+     <DialogFooter
+  className="
+    flex justify-center gap-3 md:gap-2
+    pt-4 border-t border-gray-200 mt-4
+  "
+>
+  <Button
+    type="button"
+    variant="outline"
+    onClick={() => setIsEditFormOpen(false)}
+    className="
+      h-9 text-sm rounded-lg 
+      border-orange-400 text-black
+      hover:bg-orange-50 
+      transition-all duration-300 ease-in-out
+      shadow-sm
+    "
+  >
+    Cancel
+  </Button>
+
+  <Button
+    type="submit"
+    className="
+      h-9 text-sm rounded-lg 
+      bg-orange-500 
+      text-white 
+      hover:bg-orange-600 
+      shadow-md 
+      transition-all duration-300 ease-in-out
+      focus:outline-none
+    "
+  >
+    Save Changes
+  </Button>
+</DialogFooter>
+
+      </form>
+    </DialogContent>
+  </Dialog>
+)}
+
+
       
     {selectedUser && (
         <UserDetailsDialog 

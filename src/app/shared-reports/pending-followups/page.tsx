@@ -176,43 +176,88 @@ export default function PendingFollowupsPage() {
     fetchLeads(); // Refresh leads
   }
 
-  return (
-    <TooltipProvider>
+ return (
+  <TooltipProvider>
     <div className="space-y-6 flex flex-col h-full">
-      <div className="flex items-center justify-between">
-        <Link href="/superadmin/users/admin">
-            <Button variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-            </Button>
-        </Link>
-      </div>
+      
+      {/* 🔹 Back Button + Date Filters + Search + Export all in one line */}
+      <div className="flex flex-col lg:flex-row flex-wrap items-center justify-between gap-4">
 
-      <div className="space-y-4">
-        <form className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end max-w-3xl">
-          <div className="space-y-2">
-            <Label htmlFor="start_date">Start Date</Label>
-            <Input id="start_date" name="start_date" type="text" placeholder="mm/dd/yyyy" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => {if (!e.target.value) e.target.type = 'text'}} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="end_date">End Date</Label>
-            <Input id="end_date" name="end_date" type="text" placeholder="mm/dd/yyyy" onFocus={(e) => (e.target.type = 'date')} onBlur={(e) => {if (!e.target.value) e.target.type = 'text'}} />
-          </div>
-          <Button type="submit" className="self-end">
-            <FileDown className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-        </form>
+      
+  <TooltipProvider>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Link href="/superadmin/users/admin">
+        <Button
+          variant="outline"
+          className="p-2 h-10 w-10 rounded-full shadow-sm bg-white hover:bg-gray-100 hover:text-black transition-all duration-300"
+        >
+          <ArrowLeft className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1" />
+        </Button>
+      </Link>
+    </TooltipTrigger>
 
-        <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <TooltipContent side="right" className="bg-gray-800 text-white px-2 py-1 text-xs rounded-md shadow-md">
+      Back
+    </TooltipContent>
+  </Tooltip>
+</TooltipProvider>
+
+
+
+        {/* Date Filters */}
+        <form className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="space-y-1">
+            <Label htmlFor="start_date" className="text-sm font-medium text-gray-700">
+              Start Date
+            </Label>
             <Input
-              value={search}
-              onChange={(e) => { setPage(1); setSearch(e.target.value); }}
-              placeholder="Search"
-              className="pl-10 w-full"
+              id="start_date"
+              name="start_date"
+              type="text"
+              placeholder="mm/dd/yyyy"
+              className="rounded-md border-gray-300 h-10 focus:ring-2 focus:ring-blue-500"
+              onFocus={(e) => (e.target.type = "date")}
+              onBlur={(e) => {
+                if (!e.target.value) e.target.type = "text";
+              }}
             />
-        </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label htmlFor="end_date" className="text-sm font-medium text-gray-700">
+              End Date
+            </Label>
+            <Input
+              id="end_date"
+              name="end_date"
+              type="text"
+              placeholder="mm/dd/yyyy"
+              className="rounded-md border-gray-300 h-10 focus:ring-2 focus:ring-blue-500"
+              onFocus={(e) => (e.target.type = "date")}
+              onBlur={(e) => {
+                if (!e.target.value) e.target.type = "text";
+              }}
+            />
+          </div>
+        </form>
+            {/* search button and export ko same line me edit kiya   */}
+        <div className="flex items-center gap-2 w-full">
+  <div className="relative flex-1">
+    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <Input
+      value={search}
+      onChange={(e) => { setPage(1); setSearch(e.target.value); }}
+      placeholder="Search"
+      className="pl-10 w-full"
+    />
+  </div>
+  <Button type="button" className="flex items-center gap-2 whitespace-nowrap">
+    <FileDown className="h-4 w-4" />
+    Export
+  </Button>
+</div>
+
       </div>
 
 

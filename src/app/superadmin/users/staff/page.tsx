@@ -362,15 +362,18 @@ export default function StaffManagementPage() {
 
   const KpiCard = ({ title, value, icon, color, link }: { title: string, value: string | number, icon: React.ElementType, color: string, link?: string }) => {
     const cardContent = (
-       <Card className="shadow-lg rounded-2xl hover:shadow-xl transition-shadow duration-300">
-        <CardContent className="p-3 flex flex-col items-center justify-center text-center">
-          <div className={`text-3xl ${color} mb-1`}>
-            {React.createElement(icon, { className: "h-6 w-6" })}
-          </div>
-          <div className="font-semibold text-foreground text-sm">{title}</div>
-          <div className="text-muted-foreground text-xs mt-1">{value}</div>
-        </CardContent>
-      </Card>
+
+      //  chane card size
+     <Card className="h-28 w-full shadow-md rounded-xl hover:shadow-lg transition-all duration-300 bg-white/5 border border-white/10">
+  <CardContent className="p-2 flex flex-col items-center justify-center text-center h-full">
+    <div className={`text-2xl ${color} mb-1`}>
+      {React.createElement(icon, { className: "h-5 w-5" })}
+    </div>
+    <div className="font-medium text-foreground text-sm">{title}</div>
+    <div className="text-muted-foreground text-[11px] mt-0.5">{value}</div>
+  </CardContent>
+</Card>
+
     );
 
     if (link) {
@@ -388,7 +391,7 @@ export default function StaffManagementPage() {
 
   return (
     <div className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">Staff Users</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Staff Users</h1>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
             {kpiData.map((card, index) => (
                 <KpiCard 
@@ -402,7 +405,9 @@ export default function StaffManagementPage() {
             ))}
         </div>
 
-      <Card className="shadow-lg rounded-2xl">
+        {/* change table ui in mobile with horizontal scrollbar  */}
+<div className='grid gap-4 lg:grid-cols-7'>
+      <Card className="shadow-lg rounded-2xl lg:col-span-7 overflow-hidden">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <CardTitle>Staff List</CardTitle>
@@ -428,28 +433,29 @@ export default function StaffManagementPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        {/* change cardcontent, div and table */}
+        <CardContent className='p-2 md:p-2 md:pt-0'>
           <div className="overflow-x-auto rounded-lg border">
-            <Table>
+            <Table className='min-w-[600px] md:min-w-[900px]  '>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-base md:text-sm">SR. NO</TableHead>
-                  <TableHead className="text-base md:text-sm">Name</TableHead>
-                  <TableHead className="hidden sm:table-cell text-base md:text-sm">Team Lead</TableHead>
-                  <TableHead className="hidden md:table-cell text-base md:text-sm">Mobile No</TableHead>
-                  <TableHead className="hidden lg:table-cell text-base md:text-sm">Created Date</TableHead>
-                  <TableHead className="text-base md:text-sm">Leads</TableHead>
-                  <TableHead className="text-base md:text-sm">Active/Non-Active</TableHead>
-                  <TableHead className="text-base md:text-sm">Earn</TableHead>
-                  <TableHead className="text-base md:text-sm">Incentives</TableHead>
-                  <TableHead className="text-right text-base md:text-sm">Edit Now</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">SR. NO</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Name</TableHead>
+                  <TableHead className="hidden sm:table-cell text-base md:text-sm min-w-[100px] md:min-w-0">Team Lead</TableHead>
+                  <TableHead className="hidden md:table-cell text-base md:text-sm min-w-[100px] md:min-w-0">Mobile No</TableHead>
+                  <TableHead className="hidden lg:table-cell text-base md:text-sm min-w-[100px] md:min-w-0">Created Date</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Leads</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[190px] md:min-w-0">Active/Non-Active</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Earn</TableHead>
+                  <TableHead className="text-base md:text-sm min-w-[100px] md:min-w-0">Incentives</TableHead>
+                  <TableHead className="text-right text-base md:text-sm min-w-[120px] md:min-w-0">Edit Now</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user, index) => (
                   <TableRow key={user.id}>
                     <TableCell className="text-base md:text-sm">{index + 1}</TableCell>
-                    <TableCell className="font-medium text-base md:text-sm">{user.name}</TableCell>
+                    <TableCell className="font-normal text-base md:text-sm">{user.name}</TableCell>
                     <TableCell className="hidden sm:table-cell text-base md:text-sm">{user.teamLeader}</TableCell>
                     <TableCell className="hidden md:table-cell text-base md:text-sm">{user.mobile}</TableCell>
                     <TableCell className="hidden lg:table-cell text-base md:text-sm">
@@ -528,6 +534,9 @@ export default function StaffManagementPage() {
           </div>
         </CardContent>
       </Card>
+
+
+      </div>
 
     <Dialog open={isAddFormOpen} onOpenChange={setIsAddFormOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 rounded-2xl shadow-2xl flex flex-col">
@@ -652,52 +661,195 @@ export default function StaffManagementPage() {
         </DialogContent>
     </Dialog>
 
-    {editingUser && (
-      <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Staff</DialogTitle>
-            <DialogDescription>
-              Update the details for {editingUser.name}.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleEditSubmit} className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Name</Label>
-              <Input id="edit-name" name="name" value={editingUser.name} onChange={handleEditFormChange} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input id="edit-email" name="email" type="email" value={editingUser.email} onChange={handleEditFormChange} required />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="edit-mobile">Mobile</Label>
-              <Input id="edit-mobile" name="mobile" value={editingUser.mobile} onChange={handleEditFormChange} required />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="edit-teamLeader">Team Leader</Label>
-                <Select onValueChange={(value) => handleEditSelectChange("teamLeader", value)} name="teamLeader" defaultValue={editingUser.teamLeader}>
-                    <SelectTrigger id="edit-teamLeader">
-                        <SelectValue placeholder="Select Team Leader" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="teamlead">teamlead</SelectItem>
-                        <SelectItem value="teamlead2">teamlead2</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-password">New Password (optional)</Label>
-              <Input id="edit-password" name="password" type="password" placeholder="Leave blank to keep current password" onChange={handleEditFormChange} />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsEditFormOpen(false)}>Cancel</Button>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    )}
+   {editingUser && (
+  <Dialog open={isEditFormOpen} onOpenChange={setIsEditFormOpen}>
+    <DialogContent
+      className="
+        sm:max-w-md w-[90%] md:w-[400px]
+        rounded-2xl shadow-xl p-4 md:p-5 
+        space-y-4 border border-orange-200 
+        bg-white/90 backdrop-blur-sm
+        transition-all duration-300
+      "
+    >
+      <DialogHeader className="space-y-1 text-center">
+        <DialogTitle className="text-lg md:text-xl font-semibold text-gray-800">
+          ✏️ Edit Staff Details
+        </DialogTitle>
+        <DialogDescription className="text-gray-500 text-xs md:text-sm">
+          Update info for{" "}
+          <span className="font-medium text-orange-600">
+            {editingUser.name}
+          </span>.
+        </DialogDescription>
+      </DialogHeader>
+
+      <form onSubmit={handleEditSubmit} className="space-y-1.5">
+        {/* Name */}
+        <div className="space-y-1">
+          <Label
+            htmlFor="edit-name"
+            className="text-gray-700 font-medium text-sm"
+          >
+            Full Name
+          </Label>
+          <Input
+            id="edit-name"
+            name="name"
+            value={editingUser.name}
+            onChange={handleEditFormChange}
+            className="
+              rounded-lg border-gray-300 
+              focus:ring-2 focus:ring-orange-400 
+              transition-all duration-300
+              shadow-sm h-9
+            "
+            required
+          />
+        </div>
+
+        {/* Email */}
+        <div className="space-y-1">
+          <Label
+            htmlFor="edit-email"
+            className="text-gray-700 font-medium text-sm"
+          >
+            Email Address
+          </Label>
+          <Input
+            id="edit-email"
+            name="email"
+            type="email"
+            value={editingUser.email}
+            onChange={handleEditFormChange}
+            className="
+              rounded-lg border-gray-300 
+              focus:ring-2 focus:ring-orange-400 
+              transition-all duration-300
+              shadow-sm h-9
+            "
+            required
+          />
+        </div>
+
+        {/* Mobile */}
+        <div className="space-y-1">
+          <Label
+            htmlFor="edit-mobile"
+            className="text-gray-700 font-medium text-sm"
+          >
+            Mobile Number
+          </Label>
+          <Input
+            id="edit-mobile"
+            name="mobile"
+            value={editingUser.mobile}
+            onChange={handleEditFormChange}
+            className="
+              rounded-lg border-gray-300 
+              focus:ring-2 focus:ring-orange-400 
+              transition-all duration-300
+              shadow-sm h-9
+            "
+            required
+          />
+        </div>
+
+        {/* Team Leader */}
+        <div className="space-y-1">
+          <Label
+            htmlFor="edit-teamLeader"
+            className="text-gray-700 font-medium text-sm"
+          >
+            Team Leader
+          </Label>
+          <Select
+            onValueChange={(value) =>
+              handleEditSelectChange("teamLeader", value)
+            }
+            defaultValue={editingUser.teamLeader}
+          >
+            <SelectTrigger
+              id="edit-teamLeader"
+              className="
+                rounded-lg border-gray-300 
+                focus:ring-2 focus:ring-orange-400 
+                transition-all duration-300
+                shadow-sm h-9
+              "
+            >
+              <SelectValue placeholder="Select Team Leader" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="teamlead">Teamlead</SelectItem>
+              <SelectItem value="teamlead2">Teamlead 2</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Password */}
+        <div className="space-y-1">
+          <Label
+            htmlFor="edit-password"
+            className="text-gray-700 font-medium text-sm"
+          >
+            New Password{" "}
+            <span className="text-gray-400">(optional)</span>
+          </Label>
+          <Input
+            id="edit-password"
+            name="password"
+            type="password"
+            placeholder="Leave blank to keep current password"
+            onChange={handleEditFormChange}
+            className="
+              rounded-lg border-gray-300 
+              focus:ring-2 focus:ring-orange-400 
+              transition-all duration-300
+              shadow-sm h-9
+            "
+          />
+        </div>
+
+        {/* Footer Buttons */}
+        <DialogFooter
+          className="
+            flex justify-center gap-2 pt-1 border-t border-gray-200 mt-3
+          "
+        >
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsEditFormOpen(false)}
+            className="
+              h-8 text-sm rounded-lg 
+              border-orange-300 text-gray-700
+              hover:bg-orange-50
+              transition-all duration-300 ease-in-out
+              shadow-sm
+            "
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="
+              h-8 text-sm rounded-lg 
+              bg-orange-500 text-white 
+              hover:bg-orange-600 
+              shadow-md 
+              transition-all duration-300 ease-in-out
+              focus:outline-none
+            "
+          >
+            Save
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  </Dialog>
+)}
+
       
       {selectedUser && (
         <UserDetailsDialog 

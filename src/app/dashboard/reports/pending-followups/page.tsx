@@ -134,7 +134,7 @@ export default function PendingFollowupsPage() {
   return (
     <div className="space-y-6 flex flex-col h-full">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Pending Followups</h1>
+        <h1 className="text-2xl font-semibold ">Pending Followups</h1>
         <Link href="/dashboard/users/team-leader">
             <Button variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />

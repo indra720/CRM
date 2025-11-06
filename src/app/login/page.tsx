@@ -283,7 +283,7 @@ const LoginPage = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ||  "http://localhost:8000";
     
 
     try {
@@ -330,7 +330,9 @@ const LoginPage = () => {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } 
+    
+    catch (error) {
       console.error("Login API error:", error);
       toast({
         title: "Login Error",
