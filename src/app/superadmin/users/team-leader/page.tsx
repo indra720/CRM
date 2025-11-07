@@ -77,87 +77,19 @@ import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { toggleUserActiveStatus } from "@/lib/api";
 
-// Mock User Data for Team Leader view
-// const mockUsers = [
-//   {
-//     id: 1,
-//     name: 'teamlead',
-//     mobile: '3216549870',
-//     email: 'leader1@example.com',
-//     admin: { name: 'admin' },
-//     created_date: '2025-10-11T12:00:00.000Z',
-//     self_user: { user_active: true },
-//      dob: '1990-01-01',
-//     address: '123 Leader St, Anytown',
-//     city: 'Anytown',
-//     state: 'Rajasthan',
-//     pincode: '123456',
-//     degree: 'B.Eng',
-//     pancard: 'LEADR1234F',
-//     aadharCard: '123456789012',
-//     bank_name: 'State Bank of India',
-//     account_number: '1234567890',
-//     ifsc_code: 'SBIN000000',
-//     upi_id: 'leader1@upi',
-//     salary: '80000',
-//     referralCode: 'LEAD123',
-//     marksheets: null,
-//   },
-//    {
-//     id: 2,
-//     name: 'teamlead2',
-//     mobile: '3216549871',
-//     email: 'leader2@example.com',
-//     admin: { name: 'admin' },
-//     created_date: '2025-10-12T12:00:00.000Z',
-//     self_user: { user_active: false },
-//     dob: '1992-05-15',
-//     address: '456 Oak Ave, Othertown',
-//     city: 'Othertown',
-//     state: 'Maharashtra',
-//     pincode: '654321',
-//     degree: 'M.B.A',
-//     pancard: 'LEADR5678K',
-//     aadharCard: '987654321098',
-//     bank_name: 'HDFC Bank',
-//     account_number: '0987654321',
-//     ifsc_code: 'HDFC000000',
-//     upi_id: 'leader2@upi',
-//     salary: '95000',
-//     referralCode: 'LEAD456',
-//     marksheets: null,
-//   },
-// ];
-
-// const kpiCounts = {
-//     total_pending_followup: 0,
-//     total_tomorrow_followup: 0,
-//     total_today_followup: 0,
-//     total_leads: 0,
-//     total_visit: 0,
-//     total_interested: 0,
-//     total_not_interested: 0,
-//     total_other_location: 0,
-//     total_not_picked: 0,
-//     total_staff: 1,
-//     active_staff: 0
-// };
-
-
 const kpiData = [
-    { title: "Pending FollowUps", valueKey: "total_pending_followup", icon: Clock, color: "text-yellow-500", link: "/superadmin/users/admin" },
-    { title: "Tomorrow FollowUps", valueKey: "total_tomorrow_followup", icon: Clock, color: "text-blue-500", link: "/superadmin/users/admin" },
-    { title: "Today FollowUps", valueKey: "total_today_followup", icon: Clock, color: "text-purple-500", link: "/superadmin/users/admin" },
-    { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/superadmin/users/admin" },
-    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-green-500", link: "/superadmin/users/admin" },
-    { title: "Interested", valueKey: "total_interested", icon: Check, color: "text-teal-500", link: "/superadmin/users/admin" },
-    { title: "Not Interested", valueKey: "total_not_interested", icon: XCircle, color: "text-red-500", link: "/superadmin/users/admin" },
-    { title: "Other Location", valueKey: "total_other_location", icon: MapPin, color: "text-orange-500", link: "/superadmin/users/admin" },
-    { title: "Not Picked", valueKey: "total_not_picked", icon: Phone, color: "text-slate-500", link: "/superadmin/users/admin" },
-    { title: "Total Staff", valueKey: "total_staff", icon: Users, color: "text-indigo-500", link: "/superadmin/users/admin" },
-    { title: "Active Staff", valueKey: "active_staff", icon: Users, color: "text-lime-500", link: "/superadmin/users/admin" },
+    { title: "Pending FollowUps", valueKey: "total_pending_followup", icon: Clock, color: "text-yellow-500", link: "/shared-reports/pending-followups" },
+    { title: "Tomorrow FollowUps", valueKey: "total_tomorrow_followup", icon: Clock, color: "text-blue-500", link: "/shared-reports/tomorrow-followups" },
+    { title: "Today FollowUps", valueKey: "total_today_followup", icon: Clock, color: "text-purple-500", link: "/shared-reports/today-followups" },
+    { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/shared-reports/total-leads" },
+    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-green-500", link: "/shared-reports/visit" },
+    { title: "Interested", valueKey: "total_interested", icon: Check, color: "text-teal-500", link: "/shared-reports/interested" },
+    { title: "Not Interested", valueKey: "total_not_interested", icon: XCircle, color: "text-red-500", link: "/shared-reports/not-interested" },
+    { title: "Other Location", valueKey: "total_other_location", icon: MapPin, color: "text-orange-500", link: "/shared-reports/other-location" },
+    { title: "Not Picked", valueKey: "total_not_picked", icon: Phone, color: "text-slate-500", link: "/shared-reports/not-picked" },
+    { title: "Total Staff", valueKey: "total_staff", icon: Users, color: "text-indigo-500", link: "/superadmin/users/staff" },
+    { title: "Active Staff", valueKey: "active_staff", icon: Users, color: "text-lime-500", link: "/superadmin/users/staff" },
 ];
-
 
 const initialFormData = {
     id: null,
@@ -180,6 +112,8 @@ const initialFormData = {
     salary: "",
     referralCode: "",
     marksheets: null,
+    admin: "",
+    manager_type: "",
 };
 
 const InputField = ({ id, label, name, type = 'text', placeholder, icon: Icon, value, onChange, required, children, disabled }: {
@@ -268,49 +202,68 @@ export default function TeamLeaderManagementPage() {
 
   const { toast } = useToast();
 
-
-   //  teamleader card data
   const [cardData, setcardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: new Date(),
-    to: addDays(new Date(), 7),
-  });
+  const [admins, setAdmins] = useState<any[]>([]);
+
+  const fetchDashboardData = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setError("Authentication token not found.");
+      return;
+    }
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`, {
+          headers: { Authorization: ` Token ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setcardData(data);
+    } catch (err: any) {
+      setError(err.message);
+      setcardData(null);
+    }
+  };
+
+  const fetchPageData = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setError("Authentication token not found.");
+      setLoading(false);
+      return;
+    }
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/superuser/get-team-leaders/`, {
+          headers: { Authorization: ` Token ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUsers(data.results || []);
+      
+      const uniqueAdmins = Array.from(new Map(data.results.map((item: any) => [item.admin.id, item.admin])).values());
+      setAdmins(uniqueAdmins || []);
+
+    } catch (err: any) {
+      setError(err.message);
+      setUsers([]);
+      setAdmins([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem("authToken");
-      console.log("Auth Token:", token);
-      if (!token) {
-        setError("Authentication token not found.");
-        setLoading(false);
-        return;
-      }
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/dashboard/team-leader/`,
-          {
-            headers: {
-              Authorization: ` Token ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setUsers(data.user_logs);
-        setcardData(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    fetchDashboardData();
+    fetchPageData();
   }, []);
 
 
@@ -349,16 +302,56 @@ export default function TeamLeaderManagementPage() {
     setFormData(initialFormData);
   }
 
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newUser = {...formData, id: Date.now(), admin: {name: 'Super Admin'}, created_date: new Date().toISOString(), self_user: { user_active: true }};
-    setUsers([...users, newUser]);
-    toast({
-        title: "Team Leader Added!",
-        description: `${formData.name} has been added successfully.`,
-        className: 'bg-green-500 text-white'
+    console.log("Form Data Submitted:", formData);
+    const token = localStorage.getItem("authToken");
+
+    const data = new FormData();
+    
+    // Create a copy to avoid mutating state directly, and rename admin to admin_id
+    const submissionData = { ...formData };
+    if (submissionData.admin) {
+        submissionData.admin_id = submissionData.admin;
+        delete submissionData.admin;
+    }
+
+    Object.keys(submissionData).forEach(key => {
+        if (submissionData[key] !== null && submissionData[key] !== undefined) {
+            data.append(key, submissionData[key]);
+        }
     });
-    handleCloseAddForm();
+
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/team-leader/add-new/`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Token ${token}`,
+            },
+            body: data,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            // Log the detailed error from the server
+            console.error("Server validation error:", errorData);
+            throw new Error(Object.entries(errorData).map(([key, value]) => `${key}: ${value}`).join(", ") || 'Failed to add team leader');
+        }
+
+        toast({
+            title: "Team Leader Added!",
+            description: `${formData.name} has been added successfully.`,
+            className: 'bg-green-500 text-white'
+        });
+        handleCloseAddForm();
+        fetchPageData();
+    } catch (error: any) {
+        toast({
+            title: "Error",
+            description: error.message || "An unexpected error occurred.",
+            variant: "destructive",
+        });
+    }
   };
 
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -408,8 +401,8 @@ export default function TeamLeaderManagementPage() {
         duration: 3000,
       });
 
-      // Optional: Refetch in the background to ensure consistency
-      // fetchData(); // Use fetchData for this component
+      // Refetch to ensure consistency
+      fetchPageData();
     } catch (error: any) {
       // 2. Failure: Revert state and show error
       setUsers(originalUsers);
@@ -464,7 +457,11 @@ export default function TeamLeaderManagementPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Team Leader List</h1>
-      {!loading && cardData ? (
+      {loading ? (
+        <p className="text-center text-muted-foreground">Loading dashboard...</p>
+      ) : error ? (
+        <p className="text-center text-red-500">Error: {error}</p>
+      ) : cardData ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {kpiData.map((card, index) => (
             <KpiCard
@@ -478,9 +475,7 @@ export default function TeamLeaderManagementPage() {
           ))}
         </div>
       ) : (
-        <p className="text-center text-muted-foreground">
-          Loading dashboard...
-        </p>
+        <p className="text-center text-muted-foreground">No dashboard data available.</p>
       )}
 
       <Card className="shadow-lg rounded-2xl">
@@ -639,9 +634,10 @@ export default function TeamLeaderManagementPage() {
             <form onSubmit={handleAddSubmit} className="flex-1 flex flex-col min-h-0">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                   <div className="px-6 flex-shrink-0">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="personal">Personal Details</TabsTrigger>
                         <TabsTrigger value="account">Account Details</TabsTrigger>
+                        <TabsTrigger value="role">Role</TabsTrigger>
                     </TabsList>
                   </div>
                  <div className="p-6 overflow-y-auto flex-1 relative hide-scrollbar">
@@ -656,6 +652,18 @@ export default function TeamLeaderManagementPage() {
                       >
                         {activeTab === 'personal' && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                              <InputField id="admin" label="Admin" name="admin" value={formData.admin} onChange={(e) => handleAddFormSelectChange("admin", e.target.value)} required>
+                                <Select onValueChange={(value) => handleAddFormSelectChange("admin", value)} name="admin" defaultValue={formData.admin}>
+                                    <SelectTrigger className="pl-10 pr-4 h-11">
+                                    <SelectValue placeholder="Select Admin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {admins.map(admin => (
+                                        <SelectItem key={admin.id} value={admin.id.toString()}>{admin.name}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                </Select>
+                              </InputField>
                               <InputField id="name" label="Name" name="name" placeholder="John Doe" icon={User} value={formData.name} onChange={handleAddFormChange} required />
                               <InputField id="email" label="E-Mail Address" name="email" type="email" placeholder="you@example.com" icon={Mail} value={formData.email} onChange={handleAddFormChange} required />
                               <InputField id="password" label="Password" name="password" type="password" placeholder="••••••••" icon={Lock} value={formData.password} onChange={handleAddFormChange} required />
@@ -695,25 +703,42 @@ export default function TeamLeaderManagementPage() {
                               </div>
                            </div>
                         )}
+                        {activeTab === 'role' && (
+                           <div className="grid grid-cols-1 gap-y-5">
+                              <InputField id="manager_type" label="Manager Type" name="manager_type" value={formData.manager_type} onChange={(e) => handleAddFormSelectChange("manager_type", e.target.value)} required>
+                                <Select onValueChange={(value) => handleAddFormSelectChange("manager_type", value)} name="manager_type" defaultValue={formData.manager_type}>
+                                    <SelectTrigger className="pl-10 pr-4 h-11">
+                                    <SelectValue placeholder="Select Manager Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="delivery_manager">Delivery Manager</SelectItem>
+                                      <SelectItem value="executive_manager">Executive Manager</SelectItem>
+                                      <SelectItem value="onboarding_manager">Onboarding Manager</SelectItem>
+                                      <SelectItem value="dsr_manager">DSR Manager</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                              </InputField>
+                           </div>
+                        )}
                       </motion.div>
                     </AnimatePresence>
                   </div>
                 <DialogFooter className="p-6 pt-4 border-t bg-muted/50 flex justify-between w-full flex-shrink-0">
                   {activeTab === 'personal' ? (
-                      <div></div>
+                      <Button type="button" variant="outline" onClick={handleCloseAddForm}>Cancel</Button>
                     ) : (
-                      <Button type="button" variant="outline" onClick={() => setActiveTab('personal')}>
+                      <Button type="button" variant="outline" onClick={(e) => { e.preventDefault(); activeTab === 'account' ? setActiveTab('personal') : setActiveTab('account'); }}>
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Previous
                       </Button>
                     )}
-                    {activeTab === 'personal' ? (
-                      <Button type="button" onClick={() => setActiveTab('account')}>
+                    {activeTab === 'role' ? (
+                      <Button type="submit">Save Team Leader</Button>
+                    ) : (
+                      <Button type="button" onClick={(e) => { e.preventDefault(); activeTab === 'personal' ? setActiveTab('account') : setActiveTab('role'); }}>
                         Next
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
-                    ) : (
-                      <Button type="submit">Save Team Leader</Button>
                     )}
                 </DialogFooter>
               </Tabs>

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from 'react';
 // Force re-save for DialogClose error
@@ -41,43 +41,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-
-// Mock data to replicate the API response structure from the provided code.
-const mockLeadsData = {
-    results: [
-        { id: 1, name: 'Aarav Sharma', assigned_to: { name: 'Rohan' }, team_leader: { name: 'Priya' }, call: '9876543210', follow_up_date: '2024-08-15', follow_up_time: '14:30' },
-        { id: 2, name: 'Saanvi Patel', assigned_to: { name: 'Anjali' }, team_leader: { name: 'Priya' }, call: '9876543211', follow_up_date: '2024-08-16', follow_up_time: '11:00' },
-        { id: 3, name: 'Vihaan Singh', assigned_to: { name: 'Rohan' }, team_leader: { name: 'Priya' }, call: '9876543212', follow_up_date: null, updated_date: '2024-07-20' },
-        { id: 4, name: 'Myra Reddy', assigned_to: { name: 'Anjali' }, team_leader: { name: 'Priya' }, call: '9876543213', follow_up_date: '2024-08-18', follow_up_time: '16:00' },
-        { id: 5, name: 'Kabir Verma', assigned_to: { name: 'Rohan' }, team_leader: { name: 'Priya' }, call: '9876543214', follow_up_date: '2024-08-19', follow_up_time: '10:00' },
-        { id: 6, name: 'Diya Gupta', assigned_to: { name: 'Anjali' }, team_leader: { name: 'Priya' }, call: '9876543215', follow_up_date: '2024-08-20', follow_up_time: '15:00' },
-        { id: 7, name: 'Ishaan Kumar', assigned_to: { name: 'Rohan' }, team_leader: { name: 'Priya' }, call: '9876543216', follow_up_date: '2024-08-21', follow_up_time: '12:30' },
-        { id: 8, name: 'Advika Joshi', assigned_to: { name: 'Anjali' }, team_leader: { name: 'Priya' }, call: '9876543217', follow_up_date: '2024-08-22', follow_up_time: '17:00' },
-        { id: 9, name: 'Reyansh Mehra', assigned_to: { name: 'Rohan' }, team_leader: { name: 'Priya' }, call: '9876543218', follow_up_date: '2024-08-23', follow_up_time: '09:30' },
-        { id: 10, name: 'Ananya Desai', assigned_to: { name: 'Anjali' }, team_leader: { name: 'Priya' }, call: '9876543219', follow_up_date: '2024-08-24', follow_up_time: '18:00' },
-    ],
-    page: 1,
-    total_pages: 5,
-};
-
-const mockSingleLead = {
-    id: 1,
-    name: 'Aarav Sharma',
-    status: 'Intrested',
-    message: 'Client asked for a demo next week.',
-    follow_up_date: '2024-08-15',
-    follow_up_time: '14:30',
-    call: '9876543210',
-    assigned_to: { name: 'Rohan' },
-    team_leader: { name: 'Priya' },
-};
+import { fetchAdminLeadsByTag } from '@/lib/api';
 
 export default function PendingFollowupsPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [leads, setLeads] = useState<any[]>([]);
   const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
 
   const [showModal, setShowModal] = useState(false);
@@ -93,35 +65,39 @@ export default function PendingFollowupsPage() {
   };
 
   async function fetchLeads() {
-    setLoading(true);
-    // In a real app, you would fetch from your API.
-    // Simulating API call with mock data.
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setLeads(mockLeadsData.results);
-    setTotalPages(mockLeadsData.total_pages);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await fetchAdminLeadsByTag('pending-followups');
+      const combinedLeads = [...data.staff_leads, ...data.team_leads];
+      setLeads(combinedLeads);
+      // Note: The API does not return pagination details like total_pages.
+      // You might need to adjust pagination based on the length of the received data.
+      setTotalPages(1);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch leads.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     fetchLeads();
   }, [page, search]);
 
-  async function openEditModal(id: number) {
-    // Simulating API call
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const data = mockSingleLead;
-    setEditingLead(data);
-    setStatusValue(data.status || 'Intrested');
-    setMessageValue(data.message || '');
-    setFollowDate(data.follow_up_date || '');
-    setFollowTime(data.follow_up_time || '');
+  async function openEditModal(lead: any) {
+    setEditingLead(lead);
+    setStatusValue(lead.status || 'Intrested');
+    setMessageValue(lead.message || '');
+    setFollowDate(lead.follow_up_date || '');
+    setFollowTime(lead.follow_up_time || '');
     setShowModal(true);
   }
 
   async function saveChanges() {
     if (!editingLead) return;
 
-    // Simulating API call
+    // This is where you would typically make an API call to save the changes.
+    // For now, it just shows a toast notification.
     await new Promise(resolve => setTimeout(resolve, 500));
 
     toast({
@@ -199,6 +175,12 @@ export default function PendingFollowupsPage() {
                         <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
                       </TableCell>
                     </TableRow>
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={10} className="h-24 text-center text-red-500">
+                        {error}
+                      </TableCell>
+                    </TableRow>
                   ) : leads.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={10} className="h-24 text-center">
@@ -235,7 +217,7 @@ export default function PendingFollowupsPage() {
                           <TableCell className="text-center hidden md:table-cell px-2 py-1">
                             <div className="flex items-center justify-center gap-1 sm:gap-2">
                               <TooltipProvider>
-                                  <Button variant="outline" size="sm" className="w-full text-center" onClick={() => openEditModal(lead.id)}>
+                                  <Button variant="outline" size="sm" className="w-full text-center" onClick={() => openEditModal(lead)}>
                                     <span className="hidden lg:inline">Follow Up</span>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -287,7 +269,7 @@ export default function PendingFollowupsPage() {
                                       <Link href={`/lead_history/${lead.id}`} className="text-sm">View History</Link>
                                     </div>
                                     <div className="flex items-center justify-end">
-                                      <Button size="sm" onClick={() => openEditModal(lead.id)}>
+                                      <Button size="sm" onClick={() => openEditModal(lead)}>
                                         Follow Up
                                       </Button>
                                     </div>

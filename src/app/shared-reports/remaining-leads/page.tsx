@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -15,45 +15,44 @@ import {
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { fetchAdminLeadsByTag } from '@/lib/api';
 
-type Lead = {
-  id: number;
-  name: string;
-  call: string;
-  status: string;
-};
-
-const mockLeads: Lead[] = [
-  { id: 1, name: 'Aarav Sharma', call: '9876543210', status: 'New' },
-  { id: 2, name: 'Saanvi Patel', call: '9876543211', status: 'Contacted' },
-  { id: 3, name: 'Vihaan Singh', call: '9876543212', status: 'Interested' },
-  { id: 4, name: 'Myra Reddy', call: '9876543213', status: 'Lost' },
-  { id: 5, name: 'Kabir Verma', call: '9876543214', status: 'New' },
-  { id: 6, name: 'Diya Gupta', call: '9876543215', status: 'Contacted' },
-  { id: 7, name: 'Ishaan Kumar', call: '9876543216', status: 'New' },
-  { id: 8, name: 'Advika Joshi', call: '9876543217', status: 'Lost' },
-  { id: 9, name: 'Reyansh Mehra', call: '9876543218', status: 'Interested' },
-  { id: 10, name: 'Ananya Desai', call: '9876543219', status: 'New' },
-];
+type Lead = any;
 
 function RemainingLeadsPage() {
-  // ✅ States define karo
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ Toggle function define karo
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const data = await fetchAdminLeadsByTag('remaining-leads');
+        const combinedLeads = [...data.staff_leads, ...data.team_leads];
+        setLeads(combinedLeads);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch leads.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
   const toggleRow = (rowId: number) => {
     setExpandedRowId(expandedRowId === rowId ? null : rowId);
   };
 
-  // ✅ Table hook component ke andar call karo
   const table = useReactTable({
-    data: mockLeads, // ✅ mockLeads use karo
+    data: leads,
     columns: [
       {
         id: 'sn_expander',
@@ -147,7 +146,7 @@ function RemainingLeadsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">View Uploaded Leads</h1>
+      <h1 className="text-2xl font-bold">Remaining Leads</h1>
       
       <div className="grid gap-4">
         <Card className="overflow-hidden">
@@ -188,7 +187,19 @@ function RemainingLeadsPage() {
                   ))}
                 </TableHeader>
                 <TableBody>
-                  {table.getRowModel().rows?.length ? (
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                      </TableCell>
+                    </TableRow>
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center text-red-500">
+                        {error}
+                      </TableCell>
+                    </TableRow>
+                  ) : table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <React.Fragment key={row.id}>
                         <TableRow data-state={row.getIsSelected() && 'selected'}>
@@ -255,7 +266,7 @@ function RemainingLeadsPage() {
             <div className="p-4 border-t">
               <div className="flex flex-col items-center space-y-2 py-4">
                 <div className="text-sm text-muted-foreground">
-                  Showing {table.getRowModel().rows.length} of {mockLeads.length} entries
+                  Showing {table.getRowModel().rows.length} of {leads.length} entries
                 </div>
                 <div className="space-x-2">
                   <Button

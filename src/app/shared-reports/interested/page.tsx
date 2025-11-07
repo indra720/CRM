@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -15,39 +15,45 @@ import {
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag, Calendar } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag, Calendar, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils'
+import { fetchAdminLeadsByTag } from '@/lib/api';
 
-type Lead = {
-  id: number;
-  name: string;
-  call: string;
-  status: string;
-  dateTime: string;
-};
-
-const mockLeads: Lead[] = [
-  { id: 3, name: 'Vihaan Singh', call: '9876543212', status: 'Interested', dateTime: '2023-10-27 10:00' },
-  { id: 9, name: 'Reyansh Mehra', call: '9876543218', status: 'Interested', dateTime: '2023-10-27 11:30' },
-];
+type Lead = any;
 
 function InterestedLeadsPage() {
-  // ✅ States define karo
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ Toggle function define karo
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const data = await fetchAdminLeadsByTag('total_interested_lead_tag');
+        const combinedLeads = [...data.staff_leads, ...data.team_leads];
+        setLeads(combinedLeads);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch leads.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
   const toggleRow = (rowId: number) => {
     setExpandedRowId(expandedRowId === rowId ? null : rowId);
   };
 
-  // ✅ Table hook component ke andar call karo
   const table = useReactTable({
-    data: mockLeads, // ✅ mockLeads use karo
+    data: leads,
     columns: [
       {
         id: 'sn_expander',
@@ -190,7 +196,19 @@ function InterestedLeadsPage() {
                   ))}
                 </TableHeader>
                 <TableBody>
-                  {table.getRowModel().rows?.length ? (
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                      </TableCell>
+                    </TableRow>
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center text-red-500">
+                        {error}
+                      </TableCell>
+                    </TableRow>
+                  ) : table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <React.Fragment key={row.id}>
                         <TableRow data-state={row.getIsSelected() && 'selected'}>
@@ -261,7 +279,7 @@ function InterestedLeadsPage() {
             <div className="p-4 border-t">
               <div className="flex flex-col items-center space-y-2 py-4">
                 <div className="text-sm text-muted-foreground">
-                  Showing {table.getRowModel().rows.length} of {mockLeads.length} entries
+                  Showing {table.getRowModel().rows.length} of {leads.length} entries
                 </div>
                 <div className="space-x-2">
                   <Button

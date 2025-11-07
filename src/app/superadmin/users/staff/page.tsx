@@ -76,81 +76,19 @@ import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
-import { toggleUserActiveStatus } from "@/lib/api";
+import { fetchSuperuserStaffLeadsByTag, toggleUserActiveStatus } from "@/lib/api";
 
 
-// Mock User Data
-// const mockUsers = [
-//   {
-//     id: 1,
-//     name: 'staff',
-//     teamLeader: 'teamlead',
-//     mobile: '9632587410',
-//     created_date: '2025-10-11T12:00:00.000Z',
-//     self_user: { user_active: true },
-//     email: 'staff1@example.com',
-//     password: 'password123',
-//     dob: '1995-01-01',
-//     address: '789 Staff St, Worktown',
-//     city: 'Worktown',
-//     state: 'Gujarat',
-//     pincode: '987654',
-//     degree: 'B.Com',
-//     pancard: 'STAFF1234F',
-//     aadharCard: '567890123456',
-//     bank_name: 'Axis Bank',
-//     account_number: '5678901234',
-//     ifsc_code: 'UTIB000000',
-//     upi_id: 'staff1@upi',
-//     salary: '30000',
-//     referralCode: 'STAFF123',
-//   },
-//    {
-//     id: 2,
-//     name: 'staff2',
-//     teamLeader: 'teamlead',
-//     mobile: '9876543211',
-//     created_date: '2025-10-12T12:00:00.000Z',
-//     self_user: { user_active: false },
-//     email: 'staff2@example.com',
-//     password: 'password456',
-//     dob: '1998-05-15',
-//     address: '101 Staff Ave, Jobville',
-//     city: 'Jobville',
-//     state: 'Maharashtra',
-//     pincode: '456789',
-//     degree: 'B.A',
-//     pancard: 'STAFF5678K',
-//     aadharCard: '678901234567',
-//     bank_name: 'ICICI Bank',
-//     account_number: '6789012345',
-//     ifsc_code: 'ICIC000000',
-//     upi_id: 'staff2@upi',
-//     salary: '35000',
-//     referralCode: 'STAFF456',
-//   },
-// ];
-
-// // Mock data counts for the KPI cards
-// const kpiCounts = {
-//     total_leads: 15,
-//     total_visit: 2,
-//     interested: 2,
-//     not_interested: 2,
-//     other_location: 1,
-//     not_picked: 2,
-//     total_earning: "0.00"
-// };
 
 
 const kpiData = [
-    { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/superadmin/users/admin" },
-    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-green-500", link: "/superadmin/users/admin" },
-    { title: "Interested", valueKey: "interested", icon: Check, color: "text-teal-500", link: "/superadmin/users/admin" },
-    { title: "Not Interested", valueKey: "not_interested", icon: XCircle, color: "text-red-500", link: "/superadmin/users/admin" },
-    { title: "Other Location", valueKey: "other_location", icon: MapPin, color: "text-orange-500", link: "/superadmin/users/admin" },
-    { title: "Not Picked", valueKey: "not_picked", icon: Phone, color: "text-slate-500", link: "/superadmin/users/admin" },
-    { title: "Total Earning", valueKey: "total_earning", icon: DollarSign, color: "text-yellow-500", link: "/superadmin/users/admin" },
+    { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/superadmin/reports/total-leads" },
+    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-green-500", link: "/superadmin/reports/visit" },
+    { title: "Interested", valueKey: "interested", icon: Check, color: "text-teal-500", link: "/superadmin/reports/interested" },
+    { title: "Not Interested", valueKey: "not_interested", icon: XCircle, color: "text-red-500", link: "/superadmin/reports/not-interested" },
+    { title: "Other Location", valueKey: "other_location", icon: MapPin, color: "text-orange-500", link: "/superadmin/reports/other-location" },
+    { title: "Not Picked", valueKey: "not_picked", icon: Phone, color: "text-slate-500", link: "/superadmin/reports/not-picked" },
+    { title: "Total Earning", valueKey: "total_earning", icon: DollarSign, color: "text-yellow-500", link: "/superadmin/reports/total-earning" },
 ];
 
 const initialFormData = {
@@ -271,32 +209,23 @@ export default function StaffManagementPage() {
     to: addDays(new Date(), 7),
   });
 
+  const fetchPageData = async () => {
+    setLoading(true);
+    try {
+      const data = await fetchSuperuserStaffLeadsByTag('dashboard'); // Assuming 'dashboard' tag for overall data
+      setcardData(data);
+      setUsers(data.staff_users || []); // Assuming the API returns staff users in 'staff_users' field
+    } catch (err: any) {
+      setError(err.message);
+      setUsers([]);
+      setcardData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchcardData = async () => {
-      const token = localStorage.getItem("authToken");
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`,
-          {
-            headers: {
-              Authorization: ` Token ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setcardData(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchcardData();
+    fetchPageData();
   }, []);
 
 
