@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -15,7 +15,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, History, PlusCircle, User, Flag, Mail, MoreVertical, Eye, Plus, Minus, Tag } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, ArrowLeft, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, History, PlusCircle, User, Flag, Mail, MoreVertical, Eye, Plus, Minus, Tag, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,46 +34,36 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { fetchAdminLeadsByTag } from '@/lib/api';
 
-
-type Lead = {
-  id: number;
-  name: string;
-  call: string;
-  status: string;
-};
-
-const mockLeads: Lead[] = [
-  { id: 1, name: "Aarav Sharma", call: "9876543210", status: "New" },
-  { id: 2, name: "Saanvi Patel", call: "9876543211", status: "Contacted" },
-  { id: 3, name: "Vihaan Singh", call: "9876543212", status: "Interested" },
-  { id: 4, name: "Myra Reddy", call: "9876543213", status: "Not Interested" },
-  { id: 5, name: "Kabir Verma", call: "9876543214", status: "New" },
-  { id: 6, name: "Diya Gupta", call: "9876543215", status: "Remaining" },
-  { id: 7, name: "Ishaan Kumar", call: "9876543216", status: "New" },
-  { id: 8, name: "Advika Joshi", call: "9876543217", status: "Not Interested" },
-  { id: 9, name: "Reyansh Mehra", call: "9876543218", status: "Interested" },
-  { id: 10, name: "Ananya Desai", call: "9876543219", status: "New" },
-  { id: 11, name: "Aryan Mehta", call: "9876543220", status: "Visit" },
-  { id: 12, name: "Kiara Sen", call: "9876543221", status: "Visit" },
-  { id: 13, name: "Arjun Rao", call: "9876543222", status: "Not Picked" },
-  { id: 14, name: "Zara Khan", call: "9876543223", status: "Not Picked" },
-  {
-    id: 15,
-    name: "Samaira Iyer",
-    call: "9876543224",
-    status: "Other Location",
-  },
-];
+type Lead = any;
 
 const TotalLeadsPage = () => {
   const router = useRouter();
-  const [data, setData] = useState(mockLeads);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [addLeadModalOpen, setAddLeadModalOpen] = useState(false);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const data = await fetchAdminLeadsByTag('total_assigned_lead_tag');
+        const combinedLeads = [...data.staff_leads, ...data.team_leads];
+        setLeads(combinedLeads);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch leads.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   const toggleRow = (rowId: number) => {
     setExpandedRowId(expandedRowId === rowId ? null : rowId);
@@ -239,7 +229,7 @@ const TotalLeadsPage = () => {
       id: Date.now(),
       call: formData.mobile,
     };
-    setData((prev) => [...prev, newLead]);
+    setLeads((prev) => [...prev, newLead]);
     toast({
       title: "Lead Added!",
       description: `${formData.name} has been successfully added.`,
@@ -257,7 +247,7 @@ const TotalLeadsPage = () => {
   };
 
   const table = useReactTable({
-    data,
+    data: leads,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -348,7 +338,19 @@ const TotalLeadsPage = () => {
                     ))}
                   </TableHeader>
                   <TableBody>
-                    {table.getRowModel().rows?.length ? (
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                        </TableCell>
+                      </TableRow>
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="h-24 text-center text-red-500">
+                          {error}
+                        </TableCell>
+                      </TableRow>
+                    ) : table.getRowModel().rows?.length ? (
                       table.getRowModel().rows.map((row) => (
                         <React.Fragment key={row.id}>
                           <TableRow

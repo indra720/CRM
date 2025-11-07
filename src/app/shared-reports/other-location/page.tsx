@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -15,7 +15,7 @@ import {
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag, Calendar, History } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag, Calendar, History, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,34 +23,41 @@ import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { fetchAdminLeadsByTag } from '@/lib/api';
 
-type Lead = {
-  id: number;
-  name: string;
-  call: string;
-  status: string;
-};
-
-const mockLeads: Lead[] = [
-  { id: 4, name: 'Myra Reddy', call: '9876543213', status: 'Not Interested' },
-  { id: 8, name: 'Advika Joshi', call: '9876543217', status: 'Not Interested' },
-];
+type Lead = any;
 
 function OtherLocationLeadsPage() {
   const router = useRouter();
-  // ✅ States define karo
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ Toggle function define karo
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const data = await fetchAdminLeadsByTag('total_other_location_lead_tag');
+        const combinedLeads = [...data.staff_leads, ...data.team_leads];
+        setLeads(combinedLeads);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch leads.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
   const toggleRow = (rowId: number) => {
     setExpandedRowId(expandedRowId === rowId ? null : rowId);
   };
 
-  // ✅ Table hook component ke andar call karo
   const table = useReactTable({
-    data: mockLeads, // ✅ mockLeads use karo
+    data: leads,
     columns: [
       {
         id: 'sn_expander',
@@ -157,7 +164,7 @@ function OtherLocationLeadsPage() {
   return (
     <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Other Location</h1>
+            <h1 className="text-2xl font-bold">Other Location Leads</h1>
             <Button variant="outline" onClick={() => router.push("/superadmin/users/admin")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
@@ -203,7 +210,19 @@ function OtherLocationLeadsPage() {
                   ))}
                 </TableHeader>
                 <TableBody>
-                  {table.getRowModel().rows?.length ? (
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                      </TableCell>
+                    </TableRow>
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center text-red-500">
+                        {error}
+                      </TableCell>
+                    </TableRow>
+                  ) : table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
                       <React.Fragment key={row.id}>
                         <TableRow data-state={row.getIsSelected() && 'selected'}>
@@ -236,7 +255,7 @@ function OtherLocationLeadsPage() {
                                     <div className="flex items-center">
                                       <MessageSquare className="h-4 w-4 mr-3 text-gray-500" />
                                       <a 
-                                        href={`https://wa.me/${row.original.call}?text=${encodeURIComponent('Hello ' + row.original.name)}`} 
+                                        href={`httpshttps://wa.me/${row.original.call}?text=${encodeURIComponent('Hello ' + row.original.name)}`} 
                                         target="_blank" 
                                         rel="noreferrer" 
                                         className="text-sm"
@@ -274,7 +293,7 @@ function OtherLocationLeadsPage() {
             <div className="p-4 border-t">
               <div className="flex flex-col items-center space-y-2 py-4">
                 <div className="text-sm text-muted-foreground">
-                  Showing {table.getRowModel().rows.length} of {mockLeads.length} entries
+                  Showing {table.getRowModel().rows.length} of {leads.length} entries
                 </div>
                 <div className="space-x-2">
                   <Button
