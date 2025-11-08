@@ -9,6 +9,16 @@ export async function toggleUserActiveStatus(
     throw new Error("Authentication token not found.");
   }
 
+  const requestData = {
+    user_id: userId,
+    user_type: userType,
+    is_active: isActive,
+  };
+
+  console.log("=== TOGGLE API CALL ===");
+  console.log("Request Data:", requestData);
+  console.log("API URL:", `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/toggle-active/`);
+
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/toggle-active/`,
@@ -18,23 +28,25 @@ export async function toggleUserActiveStatus(
           "Content-Type": "application/json",
           Authorization: `Token ${token}`,
         },
-        body: JSON.stringify({
-          profile_id: userId,
-          user_type: userType,
-          is_active: isActive,
-        }),
+        body: JSON.stringify(requestData),
       }
     );
 
+    console.log("API Response Status:", response.status);
+    console.log("API Response OK:", response.ok);
+
     if (!response.ok) {
       const errorData = await response.json();
+      console.log("API Error Response:", errorData);
       throw new Error(
         errorData.message || `HTTP error! status: ${response.status}`
       );
     }
 
+    console.log("=== TOGGLE API SUCCESS ===");
     // No need to return anything specific, just resolve if successful
   } catch (error: any) {
+    console.error("=== TOGGLE API ERROR ===");
     console.error("Failed to toggle user status:", error);
     throw new Error(
       `Failed to toggle user status: ${error.message || "Unknown error"}`
@@ -153,7 +165,9 @@ export async function fetchSuperuserStaffLeadsByTag(tag: string): Promise<any> {
   }
 }
 
-export async function fetchTeamLeaders(): Promise<any[]> {
+
+// function to fetch teamleader edit api call.
+export async function editTeamLeader(id: number, formData: any): Promise<any> {
   const token = localStorage.getItem("authToken");
 
   if (!token) {
@@ -162,13 +176,14 @@ export async function fetchTeamLeaders(): Promise<any[]> {
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/team-leader/list/`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/team-leader/edit/${id}/`,
       {
-        method: "GET",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Token ${token}`,
         },
+        body: JSON.stringify(formData),
       }
     );
 
@@ -179,12 +194,73 @@ export async function fetchTeamLeaders(): Promise<any[]> {
       );
     }
 
+    return await response.json();
+  } catch (error: any) {
+    console.error("Failed to edit team leader:", error);
+    throw new Error(
+      `Failed to edit team leader: ${error.message || "Unknown error"}`
+    );
+  }
+}
+
+export async function fetchAdminsForSelection(): Promise<any[]> {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    throw new Error("Authentication token not found.");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: ` Token ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
-    return data.users || []; // Assuming the API returns team leaders in 'users' field
+    return data.users || [];
+  } catch (error: any) {
+    console.error('Failed to fetch admins:', error);
+    throw new Error(`Failed to fetch admins: ${error.message || "Unknown error"}`);
+  }
+}
+
+export async function fetchTeamLeaders(): Promise<any[]> {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    throw new Error("Authentication token not found.");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/superuser/get-team-leaders/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: ` Token ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.results || [];
   } catch (error: any) {
     console.error('Failed to fetch team leaders:', error);
-    throw new Error(
-      `Failed to fetch team leaders: ${error.message || "Unknown error"}`
-    );
+    throw new Error(`Failed to fetch team leaders: ${error.message || "Unknown error"}`);
   }
 }

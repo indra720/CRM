@@ -76,18 +76,18 @@ import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
-import { fetchSuperuserStaffLeadsByTag, toggleUserActiveStatus } from "@/lib/api";
+import { fetchSuperuserStaffLeadsByTag, toggleUserActiveStatus, fetchTeamLeaders, fetchAdminsForSelection } from "@/lib/api";
 
 
 
 
 const kpiData = [
     { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/superadmin/reports/total-leads" },
-    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-green-500", link: "/superadmin/reports/visit" },
-    { title: "Interested", valueKey: "interested", icon: Check, color: "text-teal-500", link: "/superadmin/reports/interested" },
-    { title: "Not Interested", valueKey: "not_interested", icon: XCircle, color: "text-red-500", link: "/superadmin/reports/not-interested" },
-    { title: "Other Location", valueKey: "other_location", icon: MapPin, color: "text-orange-500", link: "/superadmin/reports/other-location" },
-    { title: "Not Picked", valueKey: "not_picked", icon: Phone, color: "text-slate-500", link: "/superadmin/reports/not-picked" },
+    { title: "Total Visit", valueKey: "total_visits_leads", icon: Eye, color: "text-green-500", link: "/superadmin/reports/visit" },
+    { title: "Interested", valueKey: "total_interested_leads", icon: Check, color: "text-teal-500", link: "/superadmin/reports/interested" },
+    { title: "Not Interested", valueKey: "total_not_interested_leads", icon: XCircle, color: "text-red-500", link: "/superadmin/reports/not-interested" },
+    { title: "Other Location", valueKey: "total_other_location_leads", icon: MapPin, color: "text-orange-500", link: "/superadmin/reports/other-location" },
+    { title: "Not Picked", valueKey: "total_not_picked_leads", icon: Phone, color: "text-slate-500", link: "/superadmin/reports/not-picked" },
     { title: "Total Earning", valueKey: "total_earning", icon: DollarSign, color: "text-yellow-500", link: "/superadmin/reports/total-earning" },
 ];
 
@@ -199,6 +199,9 @@ export default function StaffManagementPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [teamLeaders, setTeamLeaders] = useState<any[]>([]);
+
  
   // staff teamleader card data 
   const [cardData, setcardData] = useState<any>(null);
@@ -212,9 +215,42 @@ export default function StaffManagementPage() {
   const fetchPageData = async () => {
     setLoading(true);
     try {
-      const data = await fetchSuperuserStaffLeadsByTag('dashboard'); // Assuming 'dashboard' tag for overall data
-      setcardData(data);
-      setUsers(data.staff_users || []); // Assuming the API returns staff users in 'staff_users' field
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("Authentication token not found.");
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/superuser/staff-report/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Staff Report API Response:", data);
+      
+      // Set card data from lead_counts
+      setcardData(data.lead_counts);
+      
+      // Set users from staff_list with proper structure
+      const staffUsers = data.staff_list.map((staff: any) => ({
+        id: staff.id,
+        name: staff.name,
+        email: staff.email,
+        mobile: staff.mobile,
+        staff_id: staff.staff_id,
+        teamLeader: "N/A",
+        created_date: new Date().toISOString(),
+        self_user: { user_active: true },
+      }));
+      
+      setUsers(staffUsers);
     } catch (err: any) {
       setError(err.message);
       setUsers([]);
@@ -227,6 +263,31 @@ export default function StaffManagementPage() {
   useEffect(() => {
     fetchPageData();
   }, []);
+
+  useEffect(() => {
+    if (isAddFormOpen) {
+      const fetchDropdownData = async () => {
+        try {
+          const [adminsData, teamLeadersData] = await Promise.all([
+            fetchAdminsForSelection(),
+            fetchTeamLeaders(),
+          ]);
+          setAdmins(adminsData);
+          setTeamLeaders(teamLeadersData);
+        } catch (error) {
+          console.error("Failed to fetch dropdown data:", error);
+          setAdmins([]);
+          setTeamLeaders([]);
+          toast({
+            title: "Warning",
+            description: "Could not load admin and team leader data.",
+            variant: "destructive",
+          });
+        }
+      };
+      fetchDropdownData();
+    }
+  }, [isAddFormOpen, toast]);
 
 
   const handleAddFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -249,10 +310,67 @@ export default function StaffManagementPage() {
     setIsAddFormOpen(true);
   }
 
-  const handleOpenEditForm = (user: any) => {
-    setEditingUser({ ...user });
-    setIsEditFormOpen(true);
-  }
+  const handleOpenEditForm = async (user: any) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication token not found.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Fetch staff details from API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/edit/${user.id}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const staffData = await response.json();
+      console.log("Staff Edit Data:", staffData);
+
+      // Populate edit form with fetched data
+      setEditingUser({
+        id: staffData.id,
+        name: staffData.name || '',
+        email: staffData.email || '',
+        mobile: staffData.mobile || '',
+        dob: staffData.dob || '',
+        address: staffData.address || '',
+        city: staffData.city || '',
+        state: staffData.state || '',
+        pincode: staffData.pincode || '',
+        degree: staffData.degree || '',
+        pancard: staffData.pancard || '',
+        aadharCard: staffData.aadharCard || '',
+        bank_name: staffData.bank_name || '',
+        account_number: staffData.account_number || '',
+        ifsc_code: staffData.ifsc_code || '',
+        upi_id: staffData.upi_id || '',
+        salary: staffData.salary || '',
+        teamLeader: staffData.team_leader || '',
+        admin: staffData.admin || '',
+      });
+      
+      setIsEditFormOpen(true);
+    } catch (error: any) {
+      console.error("Error fetching staff data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch staff data for editing.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleOpenDetailsView = (user: any) => {
     setSelectedUser(user);
@@ -268,6 +386,9 @@ export default function StaffManagementPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    console.log("=== FORM SUBMISSION START ===");
+    console.log("Form Data:", formData);
+
     const token = localStorage.getItem("authToken");
     if (!token) {
       toast({
@@ -279,64 +400,104 @@ export default function StaffManagementPage() {
       return;
     }
 
+    // Validate required fields
+    if (!formData.email || !formData.password || !formData.teamLeader || !formData.admin) {
+      toast({
+        title: "Validation Error",
+        description: "Email, Password, Team Leader, and Admin are required fields.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const data = new FormData();
-    data.append('name', formData.name);
     data.append('email', formData.email);
     data.append('password', formData.password);
     data.append('team_leader', formData.teamLeader);
-    data.append('mobile', formData.mobile);
-    data.append('dob', formData.dob);
-    data.append('address', formData.address);
-    data.append('city', formData.city);
-    data.append('state', formData.state);
-    data.append('pincode', formData.pincode);
-    data.append('degree', formData.degree);
-    data.append('pancard', formData.pancard);
-    data.append('aadharCard', formData.aadharCard);
-    data.append('bank_name', formData.bank_name);
-    data.append('account_number', formData.account_number);
-    data.append('ifsc_code', formData.ifsc_code);
-    data.append('upi_id', formData.upi_id);
-    data.append('salary', formData.salary);
+    data.append('admin', formData.admin);
+    
+    // Optional fields
+    if (formData.name) data.append('name', formData.name);
+    if (formData.mobile) data.append('mobile', formData.mobile);
+    if (formData.dob) data.append('dob', formData.dob);
+    if (formData.address) data.append('address', formData.address);
+    if (formData.city) data.append('city', formData.city);
+    if (formData.state) data.append('state', formData.state);
+    if (formData.pincode) data.append('pincode', formData.pincode);
+    if (formData.degree) data.append('degree', formData.degree);
+    if (formData.pancard) data.append('pancard', formData.pancard);
+    if (formData.aadharCard) data.append('aadharCard', formData.aadharCard);
+    if (formData.bank_name) data.append('bank_name', formData.bank_name);
+    if (formData.account_number) data.append('account_number', formData.account_number);
+    if (formData.ifsc_code) data.append('ifsc_code', formData.ifsc_code);
+    if (formData.upi_id) data.append('upi_id', formData.upi_id);
+    if (formData.salary) data.append('salary', formData.salary);
+
+    console.log("=== API CALL DATA ===");
+    for (let [key, value] of data.entries()) {
+      console.log(`${key}: ${value}`);
+    }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/add/`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-          body: data,
-        }
-      );
+      console.log("Making API call to:", `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/add/`);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/add/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+        body: data,
+      });
+
+      console.log("API Response Status:", response.status);
+      console.log("API Response OK:", response.ok);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "An error occurred");
+        const errorData = await response.json();
+        console.log("API Error Data:", errorData);
+        
+        let errorMessage = "Failed to add staff.";
+        
+        if (errorData) {
+          const errors = [];
+          if (errorData.team_leader) errors.push(`Team Leader: ${errorData.team_leader.join(', ')}`);
+          if (errorData.email) errors.push(`Email: ${errorData.email.join(', ')}`);
+          if (errorData.password) errors.push(`Password: ${errorData.password.join(', ')}`);
+          if (errorData.admin) errors.push(`Admin: ${errorData.admin.join(', ')}`);
+          
+          if (errors.length > 0) {
+            errorMessage = errors.join('\n');
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const newUser = await response.json();
+      console.log("API Success Response:", newUser);
+      
       setUsers([...users, newUser]);
       toast({
         title: "Staff Added!",
-        description: `${formData.name} has been added successfully.`,
+        description: `Staff has been added successfully.`,
         className: "bg-green-500 text-white",
       });
       handleCloseAddForm();
+      fetchPageData(); // Refresh the data
     } catch (error: any) {
-      console.error("--- ERROR ---");
-      console.error(error);
-      console.error(error.message);
-      console.error("--- END ERROR ---");
-
+      console.error("=== API ERROR ===");
+      console.error("Error:", error);
+      console.error("Error Message:", error.message);
+      
       toast({
-        title: "Error Occurred",
-        description: "An error occurred. Please check the console for more details.",
+        title: "Error",
+        description: error.message || "Failed to add staff.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
+      console.log("=== FORM SUBMISSION END ===");
     }
   };
 
@@ -349,17 +510,111 @@ export default function StaffManagementPage() {
     setEditingUser({ ...editingUser, [name]: value });
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
-    toast({
+
+    console.log("=== EDIT FORM SUBMISSION START ===");
+    console.log("Edit Form Data:", editingUser);
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Authentication token not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data = new FormData();
+    
+    // Add all fields to FormData
+    if (editingUser.name) data.append('name', editingUser.name);
+    if (editingUser.email) data.append('email', editingUser.email);
+    if (editingUser.mobile) data.append('mobile', editingUser.mobile);
+    if (editingUser.dob) data.append('dob', editingUser.dob);
+    if (editingUser.address) data.append('address', editingUser.address);
+    if (editingUser.city) data.append('city', editingUser.city);
+    if (editingUser.state) data.append('state', editingUser.state);
+    if (editingUser.pincode) data.append('pincode', editingUser.pincode);
+    if (editingUser.degree) data.append('degree', editingUser.degree);
+    if (editingUser.pancard) data.append('pancard', editingUser.pancard);
+    if (editingUser.aadharCard) data.append('aadharCard', editingUser.aadharCard);
+    if (editingUser.bank_name) data.append('bank_name', editingUser.bank_name);
+    if (editingUser.account_number) data.append('account_number', editingUser.account_number);
+    if (editingUser.ifsc_code) data.append('ifsc_code', editingUser.ifsc_code);
+    if (editingUser.upi_id) data.append('upi_id', editingUser.upi_id);
+    if (editingUser.salary) data.append('salary', editingUser.salary);
+    if (editingUser.teamLeader) data.append('team_leader', editingUser.teamLeader);
+    if (editingUser.admin) data.append('admin', editingUser.admin);
+
+    console.log("=== EDIT API CALL DATA ===");
+    for (let [key, value] of data.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+
+    try {
+      console.log("Making PATCH API call to:", `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/edit/${editingUser.id}/`);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/edit/${editingUser.id}/`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+        body: data,
+      });
+
+      console.log("Edit API Response Status:", response.status);
+      console.log("Edit API Response OK:", response.ok);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Edit API Error Data:", errorData);
+        
+        let errorMessage = "Failed to update staff.";
+        if (errorData) {
+          const errors: string[] = [];
+          Object.keys(errorData).forEach(key => {
+            if (Array.isArray(errorData[key])) {
+              errors.push(`${key}: ${errorData[key].join(', ')}`);
+            }
+          });
+          if (errors.length > 0) {
+            errorMessage = errors.join('\n');
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      const updatedUser = await response.json();
+      console.log("Edit API Success Response:", updatedUser);
+
+      // Update users list
+      setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...updatedUser } : u));
+      
+      toast({
         title: "Staff Updated!",
         description: `${editingUser.name} has been updated successfully.`,
         className: 'bg-green-500 text-white'
-    });
-    setIsEditFormOpen(false);
-    setEditingUser(null);
+      });
+      
+      setIsEditFormOpen(false);
+      setEditingUser(null);
+      fetchPageData(); // Refresh the data
+    } catch (error: any) {
+      console.error("=== EDIT API ERROR ===");
+      console.error("Error:", error);
+      console.error("Error Message:", error.message);
+      
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update staff.",
+        variant: "destructive",
+      });
+    } finally {
+      console.log("=== EDIT FORM SUBMISSION END ===");
+    }
   };
 
 
@@ -496,9 +751,9 @@ export default function StaffManagementPage() {
                 <TableRow>
                   <TableHead className="text-base md:text-sm">SR. NO</TableHead>
                   <TableHead className="text-base md:text-sm">Name</TableHead>
-                  <TableHead className="hidden sm:table-cell text-base md:text-sm">Team Lead</TableHead>
+                  <TableHead className="hidden sm:table-cell text-base md:text-sm">Staff ID</TableHead>
                   <TableHead className="hidden md:table-cell text-base md:text-sm">Mobile No</TableHead>
-                  <TableHead className="hidden lg:table-cell text-base md:text-sm">Created Date</TableHead>
+                  <TableHead className="hidden lg:table-cell text-base md:text-sm">Email</TableHead>
                   <TableHead className="text-base md:text-sm">Leads</TableHead>
                   <TableHead className="text-base md:text-sm">Active/Non-Active</TableHead>
                   <TableHead className="text-base md:text-sm">Earn</TableHead>
@@ -511,13 +766,21 @@ export default function StaffManagementPage() {
                   <TableRow key={user.id}>
                     <TableCell className="text-base md:text-sm">{index + 1}</TableCell>
                     <TableCell className="font-medium text-base md:text-sm">{user.name}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-base md:text-sm">{user.teamLeader}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-base md:text-sm">{user.staff_id}</TableCell>
                     <TableCell className="hidden md:table-cell text-base md:text-sm">{user.mobile}</TableCell>
-                    <TableCell className="hidden lg:table-cell text-base md:text-sm">
-                      {new Date(user.created_date).toLocaleDateString()}
-                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-base md:text-sm">{user.email}</TableCell>
                     <TableCell className="text-base md:text-sm">
-                        <Button variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700">View</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700"
+                          onClick={() => {
+                            // Navigate to staff leads page
+                            window.location.href = `/superadmin/users/staff/leads`;
+                          }}
+                        >
+                          View
+                        </Button>
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
                       <Switch
@@ -528,10 +791,29 @@ export default function StaffManagementPage() {
                       />
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
-                        <Button variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700">Earn</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700"
+                          onClick={() => {
+                            // Navigate to staff earn page
+                            window.location.href = `/superadmin/users/staff/earn`;
+                          }}
+                        >
+                          Earn
+                        </Button>
                     </TableCell>
                      <TableCell className="text-base md:text-sm">
-                        <Button variant="outline" size="sm">Incentives</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            // Navigate to staff incentives page
+                            window.location.href = `/superadmin/users/staff/incentives`;
+                          }}
+                        >
+                          Incentives
+                        </Button>
                     </TableCell>
                     <TableCell className="text-right text-base md:text-sm">
                        <div className="flex items-center justify-end gap-2">
@@ -598,26 +880,38 @@ export default function StaffManagementPage() {
                     Fill in the details below.
                 </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleAddSubmit} className="flex-1 flex flex-col min-h-0">
+            <form className="flex-1 flex flex-col min-h-0">
                 <div className="px-6 pt-4 flex gap-4">
-                    <Select onValueChange={(value) => handleAddFormSelectChange("admin", value)} name="admin" defaultValue={formData.admin}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select Admin" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="admin1">Admin User 1</SelectItem>
-                            <SelectItem value="admin2">Admin User 2</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Select onValueChange={(value) => handleAddFormSelectChange("teamLeader", value)} name="teamLeader" defaultValue={formData.teamLeader}>
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select Team-Leader" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="teamlead">teamlead</SelectItem>
-                            <SelectItem value="teamlead2">teamlead2</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <div className="w-full">
+                        <Label className="text-sm font-medium text-muted-foreground">Admin *</Label>
+                        <Select onValueChange={(value) => handleAddFormSelectChange("admin", value)} name="admin" required>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Admin" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {admins.map((admin) => (
+                                    <SelectItem key={admin.id} value={String(admin.id)}>
+                                        {admin.name || admin.user?.first_name || admin.user?.email || `Admin ${admin.id}`}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="w-full">
+                        <Label className="text-sm font-medium text-muted-foreground">Team Leader *</Label>
+                        <Select onValueChange={(value) => handleAddFormSelectChange("teamLeader", value)} name="teamLeader" required>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Team-Leader" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {teamLeaders.map((leader) => (
+                                    <SelectItem key={leader.id} value={String(leader.id)}>
+                                        {leader.name || leader.user?.first_name || leader.user?.email || `Team Leader ${leader.id}`}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                   <div className="px-6 pt-4 flex-shrink-0">
@@ -638,20 +932,9 @@ export default function StaffManagementPage() {
                       >
                         {activeTab === 'personal' && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                              <InputField id="name" label="Name" name="name" placeholder="John Doe" icon={User} value={formData.name} onChange={handleAddFormChange} required />
-                              <InputField id="email" label="E-Mail Address" name="email" type="email" placeholder="you@example.com" icon={Mail} value={formData.email} onChange={handleAddFormChange} required />
-                              <InputField id="password" label="Password" name="password" type="password" placeholder="••••••••" icon={Lock} value={formData.password} onChange={handleAddFormChange} required />
-                               <InputField id="teamLeader" label="Team Leader" name="teamLeader" value={formData.teamLeader} onChange={handleAddFormChange}>
-                                <Select onValueChange={(value) => handleAddFormSelectChange("teamLeader", value)} name="teamLeader" defaultValue={formData.teamLeader}>
-                                    <SelectTrigger className="pl-10 pr-4 h-11">
-                                    <SelectValue placeholder="Select Team Leader" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                    <SelectItem value="teamlead">teamlead</SelectItem>
-                                    <SelectItem value="teamlead2">teamlead2</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                              </InputField>
+                              <InputField id="name" label="Name" name="name" placeholder="John Doe" icon={User} value={formData.name} onChange={handleAddFormChange} />
+                              <InputField id="email" label="E-Mail Address *" name="email" type="email" placeholder="you@example.com" icon={Mail} value={formData.email} onChange={handleAddFormChange} required />
+                              <InputField id="password" label="Password *" name="password" type="password" placeholder="••••••••" icon={Lock} value={formData.password} onChange={handleAddFormChange} required />
                               <InputField id="dob" label="Date of Birth" name="dob" type="date" icon={Calendar} value={formData.dob} onChange={handleAddFormChange} />
                               <InputField id="pancard" label="Pan Card" name="pancard" placeholder="ABCDE1234F" icon={CreditCard} value={formData.pancard} onChange={handleAddFormChange} />
                               <InputField id="aadharCard" label="Aadhar Card" name="aadharCard" placeholder="1234 5678 9012" icon={Fingerprint} value={formData.aadharCard} onChange={handleAddFormChange} />
@@ -669,7 +952,7 @@ export default function StaffManagementPage() {
                                     </SelectContent>
                                 </Select>
                               </InputField>
-                              <InputField id="mobile" label="Mobile" name="mobile" type="tel" placeholder="9876543210" icon={Phone} value={formData.mobile} onChange={handleAddFormChange} required />
+                              <InputField id="mobile" label="Mobile" name="mobile" type="tel" placeholder="9876543210" icon={Phone} value={formData.mobile} onChange={handleAddFormChange} />
                               <InputField id="salary" label="Salary" name="salary" placeholder="e.g. 50000" icon={Wallet} value={formData.salary} onChange={handleAddFormChange} />
                           </div>
                         )}
@@ -705,7 +988,7 @@ export default function StaffManagementPage() {
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     ) : (
-                      <Button type="submit" disabled={isSubmitting}>
+                      <Button type="button" onClick={handleAddSubmit} disabled={isSubmitting}>
                         {isSubmitting ? (
                           <>
                             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
