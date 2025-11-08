@@ -38,7 +38,7 @@ import {
 import {
   Pencil,
   PlusCircle,
-  Users,
+  Users,  // Changed from 'users' to 'Users'
   Check,
   Phone,
   MapPin,
@@ -51,7 +51,7 @@ import {
   User,
   DollarSign,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast, useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
@@ -135,6 +135,8 @@ export default function AssociatesPage() {
     to: addDays(new Date(), 7),
   });
 
+  const { toast } = useToast();
+
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("authToken");
@@ -165,7 +167,8 @@ export default function AssociatesPage() {
             not_picked: data.total_not_picked_leads,
             total_earning: data.total_earning,
         });
-        setUsers(data.my_staff);
+        console.log("Dashboard data.my_staff:", data.my_staff);        console.log("Sample user structure:", data.my_staff?.[0]);
+        const usersWithSelfUser = data.my_staff?.map((user: any) => ({ ...user, self_user: user.self_user || { user_active: user.user_active !== false } })) || []; setUsers(usersWithSelfUser);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -174,10 +177,8 @@ export default function AssociatesPage() {
     };
 
     fetchData();
+
   }, []);
-
-
-  const { toast } = useToast();
 
   const handleAddFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -193,9 +194,49 @@ export default function AssociatesPage() {
     setIsAddFormOpen(true);
   }
 
-  const handleOpenEditForm = (user: any) => {
-    setEditingUser({ ...user });
-    setIsEditFormOpen(true);
+  const handleOpenEditForm = async (user: any) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication token not found.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/edit/${user.id}/`, {
+        
+        headers: {
+          
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const associateData = await response.json();
+      
+      setEditingUser({
+        id: associateData.id,
+        name: associateData.name || "",
+        email: associateData.email || "",
+        mobile: associateData.mobile || "",
+        teamLeader: associateData.team_leader || "",
+      });
+      
+      setIsEditFormOpen(true);
+    } catch (error: any) {
+      console.error("Error fetching associate data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch associate data for editing.",
+        variant: "destructive",
+      });
+    }
   }
   
   const handleCloseAddForm = () => {
@@ -224,28 +265,65 @@ export default function AssociatesPage() {
     setEditingUser({ ...editingUser, [name]: value });
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
-    toast({
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Authentication token not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data = new FormData();
+    if (editingUser.name) data.append("name", editingUser.name);
+    if (editingUser.email) data.append("email", editingUser.email);
+    if (editingUser.mobile) data.append("mobile", editingUser.mobile);
+    if (editingUser.teamLeader) data.append("team_leader", editingUser.teamLeader);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/staff/edit/${editingUser.id}/`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+        body: data,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error("Failed to update associate.");
+      }
+
+      const updatedUser = await response.json();
+      setUsers(users.map((u: any) => u.id === editingUser.id ? { ...u, ...updatedUser } : u));
+      
+      toast({
         title: "Associate Updated!",
         description: `${editingUser.name} has been updated successfully.`,
-        className: 'bg-green-500 text-white'
-    });
-    setIsEditFormOpen(false);
-    setEditingUser(null);
+        className: "bg-green-500 text-white"
+      });
+      
+      setIsEditFormOpen(false);
+      setEditingUser(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update associate.",
+        variant: "destructive",
+      });
+    }
   };
-
-  useEffect(() => {
-    // setUsers(mockUsers);
-  }, []);
 
   const handleToggle = async (id: number, isActive: boolean) => {
     // 1. Optimistic UI Update
     const originalUsers = [...users];
     setUsers(
-      users.map((u) =>
+      users.map((u: any) =>
         u.id === id
           ? { ...u, self_user: { ...u.self_user, user_active: isActive } }
           : u
@@ -253,7 +331,7 @@ export default function AssociatesPage() {
     );
 
     try {
-      await toggleUserActiveStatus(id, "associate", isActive);
+      await toggleUserActiveStatus(id, "staff", isActive);
 
       // 3. Success: Show toast
       toast({
@@ -281,12 +359,9 @@ export default function AssociatesPage() {
     }
   };
 
-  const filteredUsers = users.filter((u) =>
-    Object.values(u).some(
-      (val) =>
-        val &&
-        val.toString().toLowerCase().includes(search.trim().toLowerCase())
-    )
+  const filteredUsers = users.filter((user: any) =>
+    user.name?.toLowerCase().includes(search.toLowerCase()) ||
+    user.email?.toLowerCase().includes(search.toLowerCase())
   );
 
   const KpiCard = ({ title, value, icon, color, link }: { title: string, value: string | number, icon: React.ElementType, color: string, link?: string }) => {
@@ -311,7 +386,7 @@ export default function AssociatesPage() {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-        <h1 className="text-2xl font-bold tracking-tight">Associate Users</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Associate users</h1>
        {!loading && cardData ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {kpiData.map((card, index) => (
@@ -377,7 +452,9 @@ export default function AssociatesPage() {
                       {user.created_date ? new Date(user.created_date).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
-                        <Button variant="link" size="sm" className="p-0 h-auto text-green-600">View</Button>
+                        <Link href={`/superadmin/users/associates/leads?associate_id=${user.id}`}>
+                          <Button variant="link" size="sm" className="p-0 h-auto text-green-600">View</Button>
+                        </Link>
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
                       <Switch
@@ -388,7 +465,9 @@ export default function AssociatesPage() {
                       />
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
-                        <Button variant="link" size="sm" className="p-0 h-auto text-blue-600">Earn</Button>
+                        <Link href={`/superadmin/users/associates/incentives?associate_id=${user.id}`}>
+                          <Button variant="link" size="sm" className="p-0 h-auto text-blue-600">Earn</Button>
+                        </Link>
                     </TableCell>
                      <TableCell className="text-base md:text-sm">
                         <Button variant="link" size="sm" className="p-0 h-auto text-purple-600">Add Sell</Button>
@@ -554,4 +633,4 @@ export default function AssociatesPage() {
     )}
     </div>
   );
-};
+}

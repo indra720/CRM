@@ -75,7 +75,7 @@ import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
-import { toggleUserActiveStatus } from "@/lib/api";
+import { toggleUserActiveStatus, editTeamLeader } from "@/lib/api";
 
 const kpiData = [
     { title: "Pending FollowUps", valueKey: "total_pending_followup", icon: Clock, color: "text-yellow-500", link: "/shared-reports/pending-followups" },
@@ -166,12 +166,12 @@ const UserDetailsDialog = ({ user, open, onOpenChange }: { user: any, open: bool
                     <ReviewDetailItem label="Mobile No" value={user.mobile} />
                     <ReviewDetailItem label="Email" value={user.email} />
                     <ReviewDetailItem label="Admin" value={user.admin?.name || 'N/A'} />
-                    <ReviewDetailItem label="Created Date" value={user.created_date ? new Date(user.created_date).toLocaleDateString() : 'N/A'} />
+                    <ReviewDetailItem label="Created Date" value={user.user?.created_date ? new Date(user.user.created_date).toLocaleDateString() : 'N/A'} />
                     <div className="flex justify-between items-center p-3 hover:bg-accent/50 transition-colors duration-200">
                       <p className="text-sm font-medium text-muted-foreground">Active Status</p>
                       <Switch
                         id={`active-status-modal-${user.id}`}
-                        checked={user.self_user?.user_active}
+                        checked={user.user?.user_active}
                         disabled
                       />
                     </div>
@@ -287,9 +287,65 @@ export default function TeamLeaderManagementPage() {
     setIsAddFormOpen(true);
   }
 
-  const handleOpenEditForm = (user: any) => {
-    setEditingUser({ ...user });
-    setIsEditFormOpen(true);
+  const handleOpenEditForm = async (user: any) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication token not found.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Fetch team leader details from API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/team-leader/edit/${user.id}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const teamLeaderData = await response.json();
+      console.log("Team Leader Edit Data:", teamLeaderData);
+
+      // Populate edit form with fetched data
+      setEditingUser({
+        id: teamLeaderData.id,
+        name: teamLeaderData.name || '',
+        email: teamLeaderData.email || '',
+        mobile: teamLeaderData.mobile || '',
+        dob: teamLeaderData.dob || '',
+        address: teamLeaderData.address || '',
+        city: teamLeaderData.city || '',
+        state: teamLeaderData.state || '',
+        pincode: teamLeaderData.pincode || '',
+        degree: teamLeaderData.degree || '',
+        pancard: teamLeaderData.pancard || '',
+        aadharCard: teamLeaderData.aadharCard || '',
+        bank_name: teamLeaderData.bank_name || '',
+        account_number: teamLeaderData.account_number || '',
+        ifsc_code: teamLeaderData.ifsc_code || '',
+        upi_id: teamLeaderData.upi_id || '',
+        salary: teamLeaderData.salary || '',
+        admin: teamLeaderData.admin || '',
+      });
+      
+      setIsEditFormOpen(true);
+    } catch (error: any) {
+      console.error("Error fetching team leader data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch team leader data for editing.",
+        variant: "destructive",
+      });
+    }
   }
 
   const handleOpenDetailsView = (user: any) => {
@@ -359,17 +415,110 @@ export default function TeamLeaderManagementPage() {
     setEditingUser({ ...editingUser, [name]: value });
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    setUsers(users.map(u => u.id === editingUser.id ? editingUser : u));
-    toast({
+
+    console.log("=== TEAM LEADER EDIT FORM SUBMISSION START ===");
+    console.log("Edit Form Data:", editingUser);
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Authentication token not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data = new FormData();
+    
+    // Add all fields to FormData
+    if (editingUser.name) data.append('name', editingUser.name);
+    if (editingUser.email) data.append('email', editingUser.email);
+    if (editingUser.mobile) data.append('mobile', editingUser.mobile);
+    if (editingUser.dob) data.append('dob', editingUser.dob);
+    if (editingUser.address) data.append('address', editingUser.address);
+    if (editingUser.city) data.append('city', editingUser.city);
+    if (editingUser.state) data.append('state', editingUser.state);
+    if (editingUser.pincode) data.append('pincode', editingUser.pincode);
+    if (editingUser.degree) data.append('degree', editingUser.degree);
+    if (editingUser.pancard) data.append('pancard', editingUser.pancard);
+    if (editingUser.aadharCard) data.append('aadharCard', editingUser.aadharCard);
+    if (editingUser.bank_name) data.append('bank_name', editingUser.bank_name);
+    if (editingUser.account_number) data.append('account_number', editingUser.account_number);
+    if (editingUser.ifsc_code) data.append('ifsc_code', editingUser.ifsc_code);
+    if (editingUser.upi_id) data.append('upi_id', editingUser.upi_id);
+    if (editingUser.salary) data.append('salary', editingUser.salary);
+    if (editingUser.admin) data.append('admin', editingUser.admin);
+
+    console.log("=== TEAM LEADER EDIT API CALL DATA ===");
+    for (let [key, value] of data.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+
+    try {
+      console.log("Making PATCH API call to:", `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/team-leader/edit/${editingUser.id}/`);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/users/team-leader/edit/${editingUser.id}/`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+        body: data,
+      });
+
+      console.log("Team Leader Edit API Response Status:", response.status);
+      console.log("Team Leader Edit API Response OK:", response.ok);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Team Leader Edit API Error Data:", errorData);
+        
+        let errorMessage = "Failed to update team leader.";
+        if (errorData) {
+          const errors: string[] = [];
+          Object.keys(errorData).forEach(key => {
+            if (Array.isArray(errorData[key])) {
+              errors.push(`${key}: ${errorData[key].join(', ')}`);
+            }
+          });
+          if (errors.length > 0) {
+            errorMessage = errors.join('\n');
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      const updatedUser = await response.json();
+      console.log("Team Leader Edit API Success Response:", updatedUser);
+
+      // Update users list
+      setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...updatedUser } : u));
+      
+      toast({
         title: "Team Leader Updated!",
         description: `${editingUser.name} has been updated successfully.`,
         className: 'bg-green-500 text-white'
-    });
-    setIsEditFormOpen(false);
-    setEditingUser(null);
+      });
+      
+      setIsEditFormOpen(false);
+      setEditingUser(null);
+      fetchPageData(); // Refresh the data
+    } catch (error: any) {
+      console.error("=== TEAM LEADER EDIT API ERROR ===");
+      console.error("Error:", error);
+      console.error("Error Message:", error.message);
+      
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update team leader.",
+        variant: "destructive",
+      });
+    } finally {
+      console.log("=== TEAM LEADER EDIT FORM SUBMISSION END ===");
+    }
   };
 
 
@@ -383,13 +532,13 @@ export default function TeamLeaderManagementPage() {
     setUsers(
       users.map((u) =>
         u.id === id
-          ? { ...u, self_user: { ...u.self_user, user_active: isActive } }
+          ? { ...u, user: { ...u.user, user_active: isActive } }
           : u
       )
     );
 
     try {
-      await toggleUserActiveStatus(id, "team_leader", isActive);
+      await toggleUserActiveStatus(id, "teamlead", isActive);
 
       // 3. Success: Show toast
       toast({
@@ -532,7 +681,7 @@ export default function TeamLeaderManagementPage() {
                     <TableCell className="hidden sm:table-cell">{user.admin?.name || 'N/A'}</TableCell>
                     <TableCell className="hidden md:table-cell">{user.mobile}</TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {user.created_date ? new Date(user.created_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') : 'N/A'}
+                      {user.user?.created_date ? new Date(user.user.created_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') : 'N/A'}
                     </TableCell>
                     <TableCell>
                         <select className="form-select form-select-sm w-full bg-background border border-input rounded-md px-2 py-1 text-sm" onChange={(e) => e.target.value && window.location.assign(e.target.value)}>
@@ -546,7 +695,7 @@ export default function TeamLeaderManagementPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       <Switch
-                        checked={user.self_user?.user_active}
+                        checked={user.user?.user_active}
                         onCheckedChange={(checked) =>
                           handleToggle(user.id, checked)
                         }
