@@ -1,112 +1,124 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { CheckCircle } from 'lucide-react';
+
+interface Admin {
+  id: number;
+  name: string;
+}
+
+interface TeamLeader {
+  id: number;
+  name: string;
+}
+
+interface Staff {
+  id: number;
+  name: string;
+}
 
 export default function AddSellPage() {
-  const userRole = "admin"; // Mock role: "admin" or "team_leader"
-  const id = 0; // 0 for new record, non-zero for edit
-
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [teamLeaders, setTeamLeaders] = useState<any[]>([]);
-  const [staffs, setStaffs] = useState<any[]>([]);
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [teamLeaders, setTeamLeaders] = useState<TeamLeader[]>([]);
+  const [staffs, setStaffs] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [form, setForm] = useState({
     admin: "",
     team_leader: "",
     staff: "",
     project_name: "",
-    plot_number: "",
-    date: "",
+    plot_no: "",
     size_in_gaj: "",
+    date: "",
   });
 
-  const { toast } = useToast();
+  // Fetch data from existing APIs used in other pages
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      
+      // Fetch Admins from dashboard API (same as admin page)
+      const adminResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`, {
+        headers: { 'Authorization': ` Token ${token}` },
+      });
+      if (adminResponse.ok) {
+        const adminData = await adminResponse.json();
+        setAdmins(adminData.users || []);
+      }
 
-  // Mock API — replace with your actual Django endpoints
-  const API = {
-    getAdmins: async () => [
-      { id: 1, name: "Admin 1" },
-      { id: 2, name: "Admin 2" },
-    ],
-    getTeamLeaders: async (adminId: string) => [
-      { id: 1, name: `Team Leader for Admin ${adminId}` },
-      { id: 2, name: "Another Leader" },
-    ],
-    getStaff: async (teamLeaderId: string) => [
-      { id: 1, name: `Staff under TL ${teamLeaderId}` },
-      { id: 2, name: "Second Staff" },
-    ],
-    submitForm: async (formData: any) => {
-      console.log("Submitting form:", formData);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { success: true, message: "Sell added successfully!" };
-    },
+      // Fetch Team Leaders (same as team-leader page)
+      const teamLeaderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/superuser/get-team-leaders/`, {
+        headers: { 'Authorization': ` Token ${token}` },
+      });
+      if (teamLeaderResponse.ok) {
+        const teamLeaderData = await teamLeaderResponse.json();
+        setTeamLeaders(teamLeaderData.results || []);
+      }
+
+      // Fetch Staff from staff-report API
+      const staffResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/superuser/staff-report/`, {
+        headers: { 'Authorization': ` Token ${token}` },
+      });
+      if (staffResponse.ok) {
+        const staffData = await staffResponse.json();
+        setStaffs(staffData.staff_list || []);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   };
 
   useEffect(() => {
-    if (userRole === "admin") {
-      API.getAdmins().then(setAdmins);
-    } else if (userRole === "team_leader") {
-      API.getStaff('dummy-id').then(setStaffs);
-    }
-  }, [userRole]);
-
-  useEffect(() => {
-    if (form.admin) {
-      API.getTeamLeaders(form.admin).then(setTeamLeaders);
-      setForm(prev => ({...prev, team_leader: '', staff: ''}));
-    } else {
-      setTeamLeaders([]);
-    }
-  }, [form.admin]);
-
-  useEffect(() => {
-    if (form.team_leader) {
-      API.getStaff(form.team_leader).then(setStaffs);
-      setForm(prev => ({...prev, staff: ''}));
-    } else {
-      setStaffs([]);
-    }
-  }, [form.team_leader]);
+    fetchData();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
   
   const handleSelectChange = (name: string, value: string) => {
-      setForm({ ...form, [name]: value });
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await API.submitForm(form);
-    if (res.success) {
-      toast({
-        title: "Success!",
-        description: res.message,
-        className: 'bg-green-500 text-white',
+    setLoading(true);
+    
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/add-sell-freelancer/1/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': ` Token ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
       });
-      setForm({
-        admin: "",
-        team_leader: "",
-        staff: "",
-        project_name: "",
-        plot_number: "",
-        date: "",
-        size_in_gaj: "",
-      });
-    } else {
-        toast({
-            title: "Error",
-            description: "Something went wrong.",
-            variant: "destructive"
+
+      if (response.ok) {
+        setShowSuccessModal(true);
+        setForm({
+          admin: "",
+          team_leader: "",
+          staff: "",
+          project_name: "",
+          plot_no: "",
+          size_in_gaj: "",
+          date: "",
         });
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -118,90 +130,138 @@ export default function AddSellPage() {
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             
-            {userRole === "admin" && id === 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="admin">Admin</Label>
-                  <Select name="admin" value={form.admin} onValueChange={(value) => handleSelectChange('admin', value)} required>
-                    <SelectTrigger id="admin">
-                      <SelectValue placeholder="Select Admin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {admins.map((a) => (
-                        <SelectItem key={a.id} value={String(a.id)}>
-                          {a.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="team_leader">Team Leader</Label>
-                  <Select name="team_leader" value={form.team_leader} onValueChange={(value) => handleSelectChange('team_leader', value)} required disabled={!form.admin}>
-                    <SelectTrigger id="team_leader">
-                      <SelectValue placeholder="Select Team Leader" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teamLeaders.map((tl) => (
-                        <SelectItem key={tl.id} value={String(tl.id)}>
-                          {tl.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="staff">Staff</Label>
-                  <Select name="staff" value={form.staff} onValueChange={(value) => handleSelectChange('staff', value)} required disabled={!form.team_leader}>
-                    <SelectTrigger id="staff">
-                      <SelectValue placeholder="Select Staff" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {staffs.map((s) => (
-                        <SelectItem key={s.id} value={String(s.id)}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="project_name">Project Name</Label>
-                  <Input id="project_name" type="text" name="project_name" value={form.project_name} onChange={handleChange} placeholder="Enter project name" required />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="admin">Admin</Label>
+                <Select name="admin" value={form.admin} onValueChange={(value) => handleSelectChange('admin', value)} required>
+                  <SelectTrigger id="admin">
+                    <SelectValue placeholder="Select Admin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {admins.map((admin) => (
+                      <SelectItem key={admin.id} value={String(admin.id)}>
+                        {admin.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="plot_number">Plot Number</Label>
-                  <Input id="plot_number" type="text" name="plot_number" value={form.plot_number} onChange={handleChange} placeholder="Enter plot number" required />
-                </div>
-              
-                {id === 0 && (
-                   <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" name="date" value={form.date} onChange={handleChange} required />
-                  </div>
-                )}
+              <div className="space-y-2">
+                <Label htmlFor="team_leader">Team Leader</Label>
+                <Select name="team_leader" value={form.team_leader} onValueChange={(value) => handleSelectChange('team_leader', value)} required>
+                  <SelectTrigger id="team_leader">
+                    <SelectValue placeholder="Select Team Leader" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamLeaders.map((teamLeader) => (
+                      <SelectItem key={teamLeader.id} value={String(teamLeader.id)}>
+                        {teamLeader.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="staff">Staff</Label>
+                <Select name="staff" value={form.staff} onValueChange={(value) => handleSelectChange('staff', value)} required>
+                  <SelectTrigger id="staff">
+                    <SelectValue placeholder="Select Staff" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffs.map((staff) => (
+                      <SelectItem key={staff.id} value={String(staff.id)}>
+                        {staff.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            
-            <div className="grid grid-cols-1">
-                <div className="space-y-2">
-                  <Label htmlFor="size_in_gaj">Size(Gaj)</Label>
-                  <Input id="size_in_gaj" type="text" name="size_in_gaj" value={form.size_in_gaj} onChange={handleChange} placeholder="Enter size in Gaj" required />
-                </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="project_name">Project Name</Label>
+                <Input 
+                  id="project_name" 
+                  name="project_name" 
+                  value={form.project_name} 
+                  onChange={handleChange} 
+                  placeholder="Enter project name" 
+                  required 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="date">Create Date</Label>
+                <Input 
+                  id="date" 
+                  type="date" 
+                  name="date" 
+                  value={form.date} 
+                  onChange={handleChange} 
+                  required 
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="plot_no">Plot Number</Label>
+                <Input 
+                  id="plot_no" 
+                  name="plot_no" 
+                  value={form.plot_no} 
+                  onChange={handleChange} 
+                  placeholder="Enter plot number" 
+                  required 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="size_in_gaj">Size (Gaj)</Label>
+                <Input 
+                  id="size_in_gaj" 
+                  name="size_in_gaj" 
+                  value={form.size_in_gaj} 
+                  onChange={handleChange} 
+                  placeholder="Enter size in Gaj" 
+                  required 
+                />
+              </div>
             </div>
 
             <div className="flex justify-end pt-4">
-              <Button type="submit">Submit</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Submitting...' : 'Submit'}
+              </Button>
             </div>
           </form>
         </CardContent>
       </Card>
+
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader className="items-center">
+            <div className="animate-bounce">
+              <CheckCircle className="text-green-600 w-16 h-16" />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-green-700 pt-2 animate-pulse">Fantastic!</DialogTitle>
+          </DialogHeader>
+          <div className="text-center text-muted-foreground pb-4 animate-fade-in">
+            Sell record added successfully!
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 transform hover:scale-105 transition-all duration-200"
+              onClick={() => setShowSuccessModal(false)}
+            >
+              Amazing!
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

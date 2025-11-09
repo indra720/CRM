@@ -88,7 +88,11 @@ export default function StaffLeadsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<{
+    count: number;
+    next: string | null;
+    previous: string | null;
+  }>({
     count: 0,
     next: null,
     previous: null,

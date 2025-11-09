@@ -441,6 +441,7 @@ export default function StaffManagementPage() {
                   <TableHead className="text-base md:text-sm">Active/Non-Active</TableHead>
                   <TableHead className="text-base md:text-sm">Earn</TableHead>
                   <TableHead className="text-base md:text-sm">Incentives</TableHead>
+                  <TableHead className="text-base md:text-sm">Add Sell</TableHead>
                   <TableHead className="text-right text-base md:text-sm">Edit Now</TableHead>
                 </TableRow>
               </TableHeader>
@@ -472,7 +473,7 @@ export default function StaffManagementPage() {
                       />
                     </TableCell>
                     <TableCell>
-                       <Link href="/staff/users/staff/earn">
+                       <Link href="/staff/earn">
                         <Button variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700">
                            <Eye className="h-4 w-4 sm:mr-2" />
                           <span className="hidden sm:inline">Earn</span>
@@ -480,9 +481,14 @@ export default function StaffManagementPage() {
                       </Link>
                     </TableCell>
                      <TableCell>
-                       <Link href="/staff/users/staff/incentives">
+                       <Link href="/staff/incentives">
                         <Button variant="outline" size="sm">Incentives</Button>
                         </Link>
+                    </TableCell>
+                    <TableCell>
+                       <Link href="/staff/add-sell">
+                            <Button variant="link" className="text-purple-600 p-0 h-auto">Add Sell</Button>
+                       </Link>
                     </TableCell>
                     <TableCell className="text-right text-base md:text-sm">
                        <div className="flex items-center justify-end gap-2">

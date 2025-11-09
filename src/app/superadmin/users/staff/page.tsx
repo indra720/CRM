@@ -768,19 +768,13 @@ export default function StaffManagementPage() {
                     <TableCell className="font-medium text-base md:text-sm">{user.name}</TableCell>
                     <TableCell className="hidden sm:table-cell text-base md:text-sm">{user.staff_id}</TableCell>
                     <TableCell className="hidden md:table-cell text-base md:text-sm">{user.mobile}</TableCell>
-                    <TableCell className="hidden lg:table-cell text-base md:text-sm">{user.email}</TableCell>
+                    <TableCell className="hidden lg:table-cell text-base md:text-sm">
+                      {new Date(user.created_date).toLocaleDateString()}
+                    </TableCell>
                     <TableCell className="text-base md:text-sm">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700"
-                          onClick={() => {
-                            // Navigate to staff leads page
-                            window.location.href = `/superadmin/users/staff/leads`;
-                          }}
-                        >
-                          View
-                        </Button>
+                        <Link href={`/superadmin/users/staff/leads`}>
+                          <Button variant="link" size="sm" className="p-0 h-auto text-green-600">View</Button>
+                        </Link>
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
                       <Switch
@@ -791,29 +785,14 @@ export default function StaffManagementPage() {
                       />
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700"
-                          onClick={() => {
-                            // Navigate to staff earn page
-                            window.location.href = `/superadmin/users/staff/earn`;
-                          }}
-                        >
-                          Earn
-                        </Button>
+                        <Link href={`/superadmin/users/staff/earn`}>
+                          <Button variant="link" size="sm" className="p-0 h-auto text-blue-600">Earn</Button>
+                        </Link>
                     </TableCell>
                      <TableCell className="text-base md:text-sm">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            // Navigate to staff incentives page
-                            window.location.href = `/superadmin/users/staff/incentives`;
-                          }}
-                        >
-                          Incentives
-                        </Button>
+                        <Link href={`/superadmin/users/staff/incentives`}>
+                          <Button variant="link" size="sm" className="p-0 h-auto text-yellow-600">Incentives</Button>
+                        </Link>
                     </TableCell>
                     <TableCell className="text-right text-base md:text-sm">
                        <div className="flex items-center justify-end gap-2">
