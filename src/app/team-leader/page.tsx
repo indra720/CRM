@@ -316,6 +316,7 @@ export default function TeamLeaderDashboardPage() {
                   <TableHead>Leads</TableHead>
                   <TableHead>Incentives</TableHead>
                   <TableHead>Earn</TableHead>
+                  <TableHead>Add Sell</TableHead>
                   <TableHead>Edit Now</TableHead>
                 </TableRow>
               </TableHeader>
@@ -338,13 +339,18 @@ export default function TeamLeaderDashboardPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                       <Link href="/team-leader/users/staff/incentives">
+                       <Link href="/team-leader/incentives">
                             <Button variant="link" className="p-0 h-auto">Incentives</Button>
                        </Link>
                     </TableCell>
                     <TableCell>
-                       <Link href="/team-leader/users/staff/earn">
+                       <Link href="/team-leader/earn">
                             <Button variant="link" className="text-green-600 p-0 h-auto">Earn</Button>
+                       </Link>
+                    </TableCell>
+                    <TableCell>
+                       <Link href="/team-leader/add-sell">
+                            <Button variant="link" className="text-purple-600 p-0 h-auto">Add Sell</Button>
                        </Link>
                     </TableCell>
                     <TableCell>

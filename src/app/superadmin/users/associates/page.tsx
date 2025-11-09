@@ -452,7 +452,7 @@ export default function AssociatesPage() {
                       {user.created_date ? new Date(user.created_date).toLocaleDateString() : 'N/A'}
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
-                        <Link href={`/superadmin/users/associates/leads?associate_id=${user.id}`}>
+                        <Link href={`/superadmin/users/associates/view?associate_id=${user.id}`}>
                           <Button variant="link" size="sm" className="p-0 h-auto text-green-600">View</Button>
                         </Link>
                     </TableCell>
@@ -465,12 +465,14 @@ export default function AssociatesPage() {
                       />
                     </TableCell>
                     <TableCell className="text-base md:text-sm">
-                        <Link href={`/superadmin/users/associates/incentives?associate_id=${user.id}`}>
+                        <Link href={`/superadmin/users/associates/earn?associate_id=${user.id}`}>
                           <Button variant="link" size="sm" className="p-0 h-auto text-blue-600">Earn</Button>
                         </Link>
                     </TableCell>
                      <TableCell className="text-base md:text-sm">
-                        <Button variant="link" size="sm" className="p-0 h-auto text-purple-600">Add Sell</Button>
+                        <Link href={`/superadmin/users/associates/add-sell?associate_id=${user.id}`}>
+                          <Button variant="link" size="sm" className="p-0 h-auto text-purple-600">Add Sell</Button>
+                        </Link>
                     </TableCell>
                     <TableCell className="text-right text-base md:text-sm">
                        <div className="flex items-center justify-end gap-2">

@@ -10,7 +10,12 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-export default function AddSellForTeamLeaderPage() {
+import { useSearchParams } from 'next/navigation';
+
+export default function AddSellForAssociatePage() {
+  const searchParams = useSearchParams();
+  const associateId = searchParams.get('associate_id');
+
   const [form, setForm] = useState({
     project_name: "",
     plot_number: "",
@@ -26,29 +31,61 @@ export default function AddSellForTeamLeaderPage() {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting form for team leader:", form);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    toast({
-      title: "Success!",
-      description: "Sell added successfully for the team leader.",
-      className: 'bg-green-500 text-white',
-    });
-    setForm({
-      project_name: "",
-      plot_number: "",
-      date: "",
-      size_in_gaj: "",
-    });
+
+    if (!associateId) {
+      toast({
+        title: "Error!",
+        description: "Associate ID not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const token = localStorage.getItem("authToken")
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/add-sell-freelancer/${associateId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`
+        },
+        body: JSON.stringify({
+          date: form.date,
+          // Add other form fields here as needed by the API
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add sell');
+      }
+
+      toast({
+        title: "Success!",
+        description: "Sell added successfully for the associate.",
+        className: 'bg-green-500 text-white',
+      });
+      setForm({
+        project_name: "",
+        plot_number: "",
+        date: "",
+        size_in_gaj: "",
+      });
+    } catch (error) {
+      toast({
+        title: "Error!",
+        description: "Failed to add sell.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="space-y-6">
        <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight">Add Sell for Team Leader</h1>
-            <Link href="/superadmin/team-leader">
+            <h1 className="text-2xl font-bold tracking-tight">Add Sell for Associate</h1>
+            <Link href="/superadmin/users/associates">
                 <Button variant="outline">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Team Leaders
+                    Back to Associates
                 </Button>
             </Link>
         </div>
