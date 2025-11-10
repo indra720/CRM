@@ -71,7 +71,7 @@ export function MarketingDialog() {
                         </Label>
                         <Input id="media-file-input" type="file" className="hidden" onChange={handleFileChange} />
                         {fileName ? (
-                            <span className="text-sm text-muted-foreground">{fileName}</span>
+                            <span className="text-sm text-muted-foreground truncate max-w-xs" title={fileName}>{fileName}</span>
                         ) : (
                             <span className="text-sm text-muted-foreground">No file chosen</span>
                         )}

@@ -207,9 +207,9 @@ const  ProductivityStaffPage= () => {
                           className="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400"
                         >
                           {expandedRowId === row.id ? (
-                            <Minus className="h-4 w-4" />
+                            <Minus className="h-4 w-4 text-green-500" />
                           ) : (
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-4 w-4 text-green-500" />
                           )}
                         </button>
                       </TableCell>

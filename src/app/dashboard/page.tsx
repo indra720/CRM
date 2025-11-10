@@ -44,7 +44,7 @@ export default function AdminDashboardPage() {
             <CardTitle>Productivity</CardTitle>
           </CardHeader>
           <CardContent>
-            <BarChart />
+            <BarChart data={[]} />
           </CardContent>
         </Card>
         <Card className="shadow-sm bg-card text-card-foreground">
@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
              <CardTitle>Staff Management</CardTitle>
           </CardHeader>
           <CardContent>
-            <PieChart type="staff" />
+            <PieChart data={[]} />
           </CardContent>
         </Card>
         <Card className="shadow-sm bg-card text-card-foreground">
@@ -60,7 +60,7 @@ export default function AdminDashboardPage() {
             <CardTitle>Source</CardTitle>
           </CardHeader>
           <CardContent>
-           <PieChart type="source" />
+           <PieChart data={[]} />
           </CardContent>
         </Card>
         <Card className="shadow-sm bg-card text-card-foreground">
@@ -68,7 +68,7 @@ export default function AdminDashboardPage() {
                 <CardTitle>Freelancer Chart</CardTitle>
             </CardHeader>
            <CardContent>
-             <FreelancerChart />
+             <FreelancerChart data={[]} />
            </CardContent>
         </Card>
       </div>

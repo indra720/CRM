@@ -78,17 +78,17 @@ import { addDays } from 'date-fns';
 import { toggleUserActiveStatus, editTeamLeader } from "@/lib/api";
 
 const kpiData = [
-    { title: "Pending FollowUps", valueKey: "total_pending_followup", icon: Clock, color: "text-yellow-500", link: "/shared-reports/pending-followups" },
-    { title: "Tomorrow FollowUps", valueKey: "total_tomorrow_followup", icon: Clock, color: "text-blue-500", link: "/shared-reports/tomorrow-followups" },
-    { title: "Today FollowUps", valueKey: "total_today_followup", icon: Clock, color: "text-purple-500", link: "/shared-reports/today-followups" },
-    { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/shared-reports/total-leads" },
-    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-green-500", link: "/shared-reports/visit" },
-    { title: "Interested", valueKey: "total_interested", icon: Check, color: "text-teal-500", link: "/shared-reports/interested" },
-    { title: "Not Interested", valueKey: "total_not_interested", icon: XCircle, color: "text-red-500", link: "/shared-reports/not-interested" },
-    { title: "Other Location", valueKey: "total_other_location", icon: MapPin, color: "text-orange-500", link: "/shared-reports/other-location" },
-    { title: "Not Picked", valueKey: "total_not_picked", icon: Phone, color: "text-slate-500", link: "/shared-reports/not-picked" },
-    { title: "Total Staff", valueKey: "total_staff", icon: Users, color: "text-indigo-500", link: "/superadmin/users/staff" },
-    { title: "Active Staff", valueKey: "active_staff", icon: Users, color: "text-lime-500", link: "/superadmin/users/staff" },
+    { title: "Pending FollowUps", valueKey: "total_pending_followup", icon: Clock, color: "text-yellow-500", link: "/superadmin/reports/pending-followups" },
+    { title: "Tomorrow FollowUps", valueKey: "total_tomorrow_followup", icon: Clock, color: "text-blue-500", link: "/superadmin/reports/tomorrow-followups" },
+    { title: "Today FollowUps", valueKey: "total_today_followup", icon: Clock, color: "text-purple-500", link: "/superadmin/reports/today-followups" },
+    { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/superadmin/reports/total-leads" },
+    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-green-500", link: "/superadmin/reports/visit" },
+    { title: "Interested", valueKey: "total_interested", icon: Check, color: "text-teal-500", link: "/superadmin/reports/interested" },
+    { title: "Not Interested", valueKey: "total_not_interested", icon: XCircle, color: "text-red-500", link: "/superadmin/reports/not-interested" },
+    { title: "Other Location", valueKey: "total_other_location", icon: MapPin, color: "text-orange-500", link: "/superadmin/reports/other-location" },
+    { title: "Not Picked", valueKey: "total_not_picked", icon: Phone, color: "text-slate-500", link: "/superadmin/reports/not-picked" },
+    { title: "Total Staff", valueKey: "total_staff", icon: Users, color: "text-indigo-500", link: "/superadmin/reports/total-staff" },
+    { title: "Active Staff", valueKey: "active_staff", icon: Users, color: "text-lime-500", link: "/superadmin/reports/active-staff" },
 ];
 
 const initialFormData = {
