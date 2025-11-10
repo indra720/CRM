@@ -105,6 +105,7 @@ export const SUPERADMIN_SIDENAV_ITEMS = [
         { title: 'Team Leader', path: '/superadmin/productivity/team-leader' },
         { title: 'Staff', path: '/superadmin/productivity/staff' },
         { title: 'Associates', path: '/superadmin/productivity/associates' },
+        { title: 'Admin', path: '/superadmin/productivity/admin' },
     ],
   },
   {
@@ -114,18 +115,18 @@ export const SUPERADMIN_SIDENAV_ITEMS = [
   },
   {
     title: 'Leads Report',
-    path: '/superadmin/reports',
+    path: '/superadmin/leads-report',
     icon: <FileBarChart className="h-5 w-5" />,
     submenu: true,
     subMenuItems: [
-        { title: 'Leads', path: '/superadmin/reports/total-leads' },
-        { title: 'Interested', path: '/superadmin/reports/interested' },
-        { title: 'Not Interested', path: '/superadmin/reports/not-interested' },
-        { title: 'Visit', path: '/superadmin/reports/visit' },
-        { title: 'Not Picked', path: '/superadmin/reports/not-picked' },
-        { title: 'Other Location', path: '/superadmin/reports/other-location' },
+        { title: 'Today Followups', path: '/superadmin/leads-report/today-followups' },
+        { title: 'Pending Followups', path: '/superadmin/leads-report/pending-followups' },
+        { title: 'Tomorrow Followups', path: '/superadmin/leads-report/tomorrow-followups' },
+        { title: 'Interested', path: '/superadmin/leads-report/interested' },
+        { title: 'Visit', path: '/superadmin/leads-report/visit' },
     ],
   },
+
   {
     title: 'Marketing',
     path: '/superadmin/marketing', 
