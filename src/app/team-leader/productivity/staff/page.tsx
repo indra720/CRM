@@ -77,7 +77,7 @@ const ProductivityStaffPage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Productivity Index: Staff</h1>
+      <h1 className="text-2xl font-medium tracking-tight">Productivity Index: Staff</h1>
 
       <Card className="shadow-lg rounded-2xl">
         <CardContent className="p-6">

@@ -258,7 +258,7 @@ export function StaffSidebar({ isSidebarOpen, setSidebarOpen, isCollapsed, setIs
 
       {/* Desktop Sidebar */}
       <aside className={cn(
-          "hidden lg:fixed left-0 top-0 h-full bg-sidebar text-sidebar-foreground lg:flex flex-col border-r border-sidebar-border transition-all duration-300 ease-in-out",
+          "hidden lg:fixed left-0 top-0 h-full bg-sidebar text-sidebar-foreground lg:flex flex-col border-r border-sidebar-border transition-all duration-300 ease-in-out z-40",
           isCollapsed ? "w-20" : "w-64"
         )}>
           <div className='flex flex-col h-full'>
