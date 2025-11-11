@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, ReactNode, useCallback } fr
 interface DialogState {
   isOpen: boolean;
   title: string;
+  source: string;
 }
 
 interface MarketingContextType {
@@ -16,14 +17,14 @@ interface MarketingContextType {
 const MarketingContext = createContext<MarketingContextType | undefined>(undefined);
 
 export const MarketingProvider = ({ children }: { children: ReactNode }) => {
-  const [dialogState, setDialogState] = useState<DialogState>({ isOpen: false, title: '' });
+  const [dialogState, setDialogState] = useState<DialogState>({ isOpen: false, title: '', source: '' });
 
-  const openDialog = useCallback((title: string) => {
-    setDialogState({ isOpen: true, title });
+  const openDialog = useCallback((title: string, source: string) => {
+    setDialogState({ isOpen: true, title, source });
   }, []);
 
   const closeDialog = useCallback(() => {
-    setDialogState({ isOpen: false, title: '' });
+    setDialogState({ isOpen: false, title: '', source: '' });
   }, []);
 
   return (

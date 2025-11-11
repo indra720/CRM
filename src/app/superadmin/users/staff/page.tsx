@@ -82,13 +82,13 @@ import { fetchSuperuserStaffLeadsByTag, toggleUserActiveStatus, fetchTeamLeaders
 
 
 const kpiData = [
-    { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/superadmin/reports/total-leads" },
-    { title: "Total Visit", valueKey: "total_visits_leads", icon: Eye, color: "text-green-500", link: "/superadmin/reports/visit" },
-    { title: "Interested", valueKey: "total_interested_leads", icon: Check, color: "text-teal-500", link: "/superadmin/reports/interested" },
-    { title: "Not Interested", valueKey: "total_not_interested_leads", icon: XCircle, color: "text-red-500", link: "/superadmin/reports/not-interested" },
-    { title: "Other Location", valueKey: "total_other_location_leads", icon: MapPin, color: "text-orange-500", link: "/superadmin/reports/other-location" },
-    { title: "Not Picked", valueKey: "total_not_picked_leads", icon: Phone, color: "text-slate-500", link: "/superadmin/reports/not-picked" },
-    { title: "Total Earning", valueKey: "total_earning", icon: DollarSign, color: "text-yellow-500", link: "/superadmin/reports/total-earning" },
+    { title: "Total Leads", valueKey: "total_leads", icon: Users, color: "text-rose-500", link: "/superadmin/reports/total-leads?source=staff" },
+    { title: "Total Visit", valueKey: "total_visits_leads", icon: Eye, color: "text-green-500", link: "/superadmin/reports/visit?source=staff" },
+    { title: "Interested", valueKey: "total_interested_leads", icon: Check, color: "text-teal-500", link: "/superadmin/reports/interested?source=staff" },
+    { title: "Not Interested", valueKey: "total_not_interested_leads", icon: XCircle, color: "text-red-500", link: "/superadmin/reports/not-interested?source=staff" },
+    { title: "Other Location", valueKey: "total_other_location_leads", icon: MapPin, color: "text-orange-500", link: "/superadmin/reports/other-location?source=staff" },
+    { title: "Not Picked", valueKey: "total_not_picked_leads", icon: Phone, color: "text-slate-500", link: "/superadmin/reports/not-picked?source=staff" },
+    { title: "Total Earning", valueKey: "total_earning", icon: DollarSign, color: "text-yellow-500", link: "/superadmin/reports/total-earning?source=staff" },
 ];
 
 const initialFormData = {

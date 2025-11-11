@@ -41,7 +41,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { fetchAdminLeadsByTag } from '@/lib/api';
+import { fetchSuperuserTeamLeaderLeadsByTag } from '@/lib/api';
 
 export default function TomorrowFollowupsPage() {
   const [search, setSearch] = useState('');
@@ -67,10 +67,9 @@ export default function TomorrowFollowupsPage() {
   async function fetchLeads() {
     try {
       setLoading(true);
-      const data = await fetchAdminLeadsByTag('tomorrow-followups');
-      const combinedLeads = [...data.staff_leads, ...data.team_leads];
-      setLeads(combinedLeads);
-      setTotalPages(1); // Adjust as needed
+      const data = await fetchSuperuserTeamLeaderLeadsByTag('tomorrow_followups');
+      setLeads(data.results);
+      setTotalPages(Math.ceil(data.count / 10)); // Assuming 10 items per page
     } catch (err: any) {
       setError(err.message || 'Failed to fetch leads.');
     } finally {

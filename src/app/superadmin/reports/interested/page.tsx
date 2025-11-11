@@ -20,11 +20,13 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils'
-import { fetchAdminLeadsByTag } from '@/lib/api';
+import { useSearchParams } from 'next/navigation';
+import { fetchSuperuserStaffLeadsByTag, fetchSuperuserTeamLeaderLeadsByTag, fetchSuperuserFreelancerLeadsByTag } from '@/lib/api';
 
 type Lead = any;
 
 function InterestedLeadsPage() {
+  const searchParams = useSearchParams();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
@@ -36,9 +38,16 @@ function InterestedLeadsPage() {
     async function fetchData() {
       try {
         setLoading(true);
-        const data = await fetchAdminLeadsByTag('total_interested_lead_tag');
-        const combinedLeads = [...data.staff_leads, ...data.team_leads];
-        setLeads(combinedLeads);
+        const source = searchParams.get('source');
+        let data;
+        if (source === 'team-leader') {
+          data = await fetchSuperuserTeamLeaderLeadsByTag('interested');
+        } else if (source === 'associate') {
+          data = await fetchSuperuserFreelancerLeadsByTag('interested');
+        } else {
+          data = await fetchSuperuserStaffLeadsByTag('interested');
+        }
+        setLeads(data.results);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch leads.');
       } finally {
@@ -46,7 +55,7 @@ function InterestedLeadsPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [searchParams]);
 
   const toggleRow = (rowId: number) => {
     setExpandedRowId(expandedRowId === rowId ? null : rowId);

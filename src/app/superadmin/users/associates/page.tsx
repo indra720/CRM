@@ -62,12 +62,12 @@ import { toggleUserActiveStatus } from "@/lib/api";
 
 
 const kpiData = [
-    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-blue-500", link: "/superadmin/users/admin" },
-    { title: "Interested", valueKey: "interested", icon: Check, color: "text-green-500", link: "/superadmin/users/admin" },
-    { title: "Not Interested", valueKey: "not_interested", icon: XCircle, color: "text-red-500", link: "/superadmin/users/admin" },
-    { title: "Other Location", valueKey: "other_location", icon: MapPin, color: "text-yellow-500", link: "/superadmin/users/admin" },
-    { title: "Not Picked", valueKey: "not_picked", icon: Phone, color: "text-purple-500", link: "/superadmin/users/admin" },
-    { title: "Total Earning", valueKey: "total_earning", icon: DollarSign, color: "text-emerald-500", link: "/superadmin/users/admin" },
+    { title: "Total Visit", valueKey: "total_visit", icon: Eye, color: "text-blue-500", link: "/superadmin/reports/visit?source=associate" },
+    { title: "Interested", valueKey: "interested", icon: Check, color: "text-green-500", link: "/superadmin/reports/interested?source=associate" },
+    { title: "Not Interested", valueKey: "not_interested", icon: XCircle, color: "text-red-500", link: "/superadmin/reports/not-interested?source=associate" },
+    { title: "Other Location", valueKey: "other_location", icon: MapPin, color: "text-yellow-500", link: "/superadmin/reports/other-location?source=associate" },
+    { title: "Not Picked", valueKey: "not_picked", icon: Phone, color: "text-purple-500", link: "/superadmin/reports/not-picked?source=associate" },
+    { title: "Total Earning", valueKey: "total_earning", icon: DollarSign, color: "text-emerald-500", link: "/superadmin/reports/total-earning?source=associate" },
 ];
 
 

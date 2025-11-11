@@ -28,18 +28,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { fetchAdminLeadsByTag } from '@/lib/api';
+import { fetchSuperuserStaffLeadsByTag, fetchSuperuserTeamLeaderLeadsByTag } from '@/lib/api';
 
 type Lead = any;
 
 const TotalLeadsPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -53,9 +55,14 @@ const TotalLeadsPage = () => {
     async function fetchData() {
       try {
         setLoading(true);
-        const data = await fetchAdminLeadsByTag('total_assigned_lead_tag');
-        const combinedLeads = [...data.staff_leads, ...data.team_leads];
-        setLeads(combinedLeads);
+        const source = searchParams.get('source');
+        let data;
+        if (source === 'team-leader') {
+          data = await fetchSuperuserTeamLeaderLeadsByTag('total_leads');
+        } else {
+          data = await fetchSuperuserStaffLeadsByTag('total_lead');
+        }
+        setLeads(data.results);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch leads.');
       } finally {
@@ -63,7 +70,7 @@ const TotalLeadsPage = () => {
       }
     }
     fetchData();
-  }, []);
+  }, [searchParams]);
 
   const toggleRow = (rowId: number) => {
     setExpandedRowId(expandedRowId === rowId ? null : rowId);
