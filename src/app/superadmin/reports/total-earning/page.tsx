@@ -20,70 +20,33 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils'
 
-type Earning = {
-  id: number;
-  name: string;
-  call: string;
-  whatsapp: string;
-  status: string;
-};
+import { fetchSuperuserStaffLeadsByTag } from '@/lib/api';
 
-const initialEarningData: Earning[] = [
-  {
-    id: 1,
-    name: 'John Doe',
-    call: '123-456-7890',
-    whatsapp: '1234567890',
-    status: 'Paid',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    call: '098-765-4321',
-    whatsapp: '0987654321',
-    status: 'Paid',
-  },
-  {
-    id: 3,
-    name: 'Peter Jones',
-    call: '111-222-3333',
-    whatsapp: '1112223333',
-    status: 'Pending',
-  },
-  {
-    id: 4,
-    name: 'Alice Brown',
-    call: '444-555-6666',
-    whatsapp: '4445556666',
-    status: 'Paid',
-  },
-  {
-    id: 5,
-    name: 'Bob White',
-    call: '777-888-9999',
-    whatsapp: '7778889999',
-    status: 'Paid',
-  },
-];
+type Lead = any;
 
 function TotalEarningPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [earnings, setEarnings] = useState<Earning[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate API call
-    const timer = setTimeout(() => {
-      setEarnings(initialEarningData);
-      setLoading(false);
-    }, 1000); // Simulate 1 second loading time
-
-    return () => clearTimeout(timer);
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const data = await fetchSuperuserStaffLeadsByTag('total_earning');
+        setLeads(data.results);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch leads.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
   }, []);
 
-  const columns: ColumnDef<Earning>[] = [
+  const columns: ColumnDef<Lead>[] = [
     {
       id: 'sn',
       header: 'S.N.',
@@ -122,7 +85,7 @@ function TotalEarningPage() {
       header: 'Whatsapp',
       cell: ({ row }) => (
         <a 
-          href={`https://wa.me/${row.getValue('whatsapp')}?text=${encodeURIComponent('Hello ' + row.original.name)}`}
+          href={`https://wa.me/${row.original.call}?text=${encodeURIComponent('Hello ' + row.original.name)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block hover:scale-110 transition-transform"
@@ -152,7 +115,7 @@ function TotalEarningPage() {
   ];
 
   const table = useReactTable({
-    data: earnings,
+    data: leads,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -247,7 +210,7 @@ function TotalEarningPage() {
             <div className="p-4 border-t">
               <div className="flex flex-col items-center space-y-2 py-4">
                 <div className="text-sm text-muted-foreground">
-                  Showing {table.getRowModel().rows.length} of {earnings.length} entries
+                  Showing {table.getRowModel().rows.length} of {leads.length} entries
                 </div>
                 <div className="space-x-2">
                   <Button

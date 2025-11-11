@@ -41,7 +41,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { fetchAdminLeadsByTag } from '@/lib/api';
+import { fetchSuperuserTeamLeaderLeadsByTag } from '@/lib/api';
 
 export default function PendingFollowupsPage() {
   const [search, setSearch] = useState('');
@@ -67,12 +67,10 @@ export default function PendingFollowupsPage() {
   async function fetchLeads() {
     try {
       setLoading(true);
-      const data = await fetchAdminLeadsByTag('pending-followups');
-      const combinedLeads = [...data.staff_leads, ...data.team_leads];
-      setLeads(combinedLeads);
-      // Note: The API does not return pagination details like total_pages.
-      // You might need to adjust pagination based on the length of the received data.
-      setTotalPages(1);
+      const data = await fetchSuperuserTeamLeaderLeadsByTag('pending_followups');
+      setLeads(data.results);
+      // You might need to adjust pagination based on the API response
+      setTotalPages(Math.ceil(data.count / 10)); // Assuming 10 items per page
     } catch (err: any) {
       setError(err.message || 'Failed to fetch leads.');
     } finally {

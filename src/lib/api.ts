@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export async function toggleUserActiveStatus(
   userId: number,
   userType: string,
@@ -203,6 +205,76 @@ export async function editTeamLeader(id: number, formData: any): Promise<any> {
   }
 }
 
+export async function fetchSuperuserTeamLeaderLeadsByTag(tag: string): Promise<any> {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    throw new Error("Authentication token not found.");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/superuser/team-leader-leads/${tag}/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.message || `HTTP error! status: ${response.status}`
+      );
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error(`Failed to fetch superuser team leader leads for tag ${tag}:`, error);
+    throw new Error(
+      `Failed to fetch superuser team leader leads: ${error.message || "Unknown error"}`
+    );
+  }
+}
+
+export async function fetchSuperuserFreelancerLeadsByTag(tag: string): Promise<any> {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    throw new Error("Authentication token not found.");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/superuser/freelancer-leads/${tag}/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.message || `HTTP error! status: ${response.status}`
+      );
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error(`Failed to fetch superuser freelancer leads for tag ${tag}:`, error);
+    throw new Error(
+      `Failed to fetch superuser freelancer leads: ${error.message || "Unknown error"}`
+    );
+  }
+}
+
 export async function fetchAdminsForSelection(): Promise<any[]> {
   const token = localStorage.getItem("authToken");
 
@@ -263,4 +335,71 @@ export async function fetchTeamLeaders(): Promise<any[]> {
     console.error('Failed to fetch team leaders:', error);
     throw new Error(`Failed to fetch team leaders: ${error.message || "Unknown error"}`);
   }
+}
+
+// Function to fetch interested leads
+export async function fetchInterestedLeads(): Promise<InterestedLeadsResponse> {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    throw new Error("Authentication token not found.");
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/api/team-customer/interested/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.message || `HTTP error! status: ${response.status}`
+      );
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    console.error("Failed to fetch interested leads:", error);
+    throw new Error(
+      `Failed to fetch interested leads: ${error.message || "Unknown error"}`
+    );
+  }
+}
+
+interface AssignedTo {
+  id: number;
+  name: string;
+  staff_id: string;
+  email: string;
+  mobile: string;
+}
+
+export interface Lead {
+  dateTime: ReactNode;
+  team_leader: any;
+  id: number;
+  name: string;
+  email: string;
+  call: string;
+  send: string | null;
+  status: string;
+  message: string;
+  follow_up_date: string | null;
+  follow_up_time: string | null;
+  created_date: string;
+  assigned_to: AssignedTo;
+}
+
+interface InterestedLeadsResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Lead[];
 }

@@ -23,12 +23,14 @@ import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { fetchAdminLeadsByTag } from '@/lib/api';
+import { useSearchParams } from 'next/navigation';
+import { fetchSuperuserStaffLeadsByTag, fetchSuperuserTeamLeaderLeadsByTag, fetchSuperuserFreelancerLeadsByTag } from '@/lib/api';
 
 type Lead = any;
 
 function NotInterestedLeadsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
@@ -40,9 +42,16 @@ function NotInterestedLeadsPage() {
     async function fetchData() {
       try {
         setLoading(true);
-        const data = await fetchAdminLeadsByTag('total_not_interested_lead_tag');
-        const combinedLeads = [...data.staff_leads, ...data.team_leads];
-        setLeads(combinedLeads);
+        const source = searchParams.get('source');
+        let data;
+        if (source === 'team-leader') {
+          data = await fetchSuperuserTeamLeaderLeadsByTag('not_interested');
+        } else if (source === 'associate') {
+            data = await fetchSuperuserFreelancerLeadsByTag('not_interested');
+        } else {
+          data = await fetchSuperuserStaffLeadsByTag('not_interested');
+        }
+        setLeads(data.results);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch leads.');
       } finally {
@@ -50,7 +59,7 @@ function NotInterestedLeadsPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [searchParams]);
 
   const toggleRow = (rowId: number) => {
     setExpandedRowId(expandedRowId === rowId ? null : rowId);

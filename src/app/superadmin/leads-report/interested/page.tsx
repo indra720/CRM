@@ -15,14 +15,13 @@ import {
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag, Calendar, Loader2, Users } from 'lucide-react';
+import { Phone, MessageSquare, ArrowUpDown, Search, Plus, Minus, Tag, Calendar, Loader2, Users, History } from 'lucide-react';
+import Link from 'next/link';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils'
-import { fetchAdminLeadsByTag } from '@/lib/api';
-
-type Lead = any;
+import { fetchInterestedLeads, Lead } from '@/lib/api';
 
 function InterestedLeadsPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -36,9 +35,8 @@ function InterestedLeadsPage() {
     async function fetchData() {
       try {
         setLoading(true);
-        const data = await fetchAdminLeadsByTag('total_interested_lead_tag');
-        const combinedLeads = [...data.staff_leads, ...data.team_leads];
-        setLeads(combinedLeads);
+        const data = await fetchInterestedLeads();
+        setLeads(data.results);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch leads.');
       } finally {
@@ -155,6 +153,20 @@ function InterestedLeadsPage() {
         accessorKey: 'dateTime',
         header: 'Time and Date',
         cell: ({ row }) => <div className="capitalize">{row.getValue('dateTime')}</div>,
+        meta: {
+          className: 'hidden md:table-cell', // Hide on mobile
+        },
+      },
+      {
+        id: 'history',
+        header: 'History',
+        cell: ({ row }) => (
+          <Link href={`/superadmin/leads-report/interested/${row.original.id}/history`}>
+            <Button variant="ghost" size="icon">
+              <History className="h-5 w-5 text-purple-500" />
+            </Button>
+          </Link>
+        ),
         meta: {
           className: 'hidden md:table-cell', // Hide on mobile
         },
