@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSearchParams } from 'next/navigation';
 import { fetchSuperuserStaffLeadsByTag, fetchSuperuserTeamLeaderLeadsByTag, fetchSuperuserFreelancerLeadsByTag } from '@/lib/api';
+import { BackButton } from '@/components/ui/back-button';
 
 
 type Lead = any;
@@ -156,7 +157,10 @@ function VisitLeadsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">View Uploaded Leads</h1>
+      <div className="flex items-center gap-4">
+        <BackButton />
+        <h1 className="text-2xl font-bold">Visit Leads</h1>
+      </div>
       
       <div className="grid gap-4">
         <Card className="overflow-hidden">
