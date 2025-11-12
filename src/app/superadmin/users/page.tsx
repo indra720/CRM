@@ -30,7 +30,7 @@ export default function UsersPage() {
     const fetchDashboardData = async () => {
       const token = localStorage.getItem('authToken');
       try {
-        const response = await fetch(`http://127.0.0.1:8000/accounts/dashboard/super-admin/`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/accounts/dashboard/super-admin/`, {
           headers: {
             Authorization: ` Token ${token}`
           }

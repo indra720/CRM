@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils'
 import { useSearchParams } from 'next/navigation';
 import { fetchSuperuserStaffLeadsByTag, fetchSuperuserTeamLeaderLeadsByTag, fetchSuperuserFreelancerLeadsByTag } from '@/lib/api';
+import { BackButton } from '@/components/ui/back-button';
 
 type Lead = any;
 
@@ -164,7 +165,10 @@ function InterestedLeadsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">Interested</h1>
+      <div className="flex items-center gap-4">
+        <BackButton />
+        <h1 className="text-2xl font-bold">Interested</h1>
+      </div>
       
       <div className="grid gap-4">
         <Card className="overflow-hidden">

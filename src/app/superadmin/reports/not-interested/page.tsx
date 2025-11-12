@@ -20,11 +20,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils'
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { fetchSuperuserStaffLeadsByTag, fetchSuperuserTeamLeaderLeadsByTag, fetchSuperuserFreelancerLeadsByTag } from '@/lib/api';
+import { BackButton } from '@/components/ui/back-button';
 
 type Lead = any;
 
@@ -160,13 +158,10 @@ function NotInterestedLeadsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Not Interested Leads</h1>
-            <Button variant="outline" onClick={() => router.push("/superadmin/users/admin")}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-            </Button>
-        </div>
+      <div className="flex items-center gap-4">
+        <BackButton />
+        <h1 className="text-2xl font-bold">Not Interested Leads</h1>
+      </div>
       
       <div className="grid gap-4">
         <Card className="overflow-hidden">

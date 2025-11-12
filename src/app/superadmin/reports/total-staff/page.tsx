@@ -29,43 +29,7 @@ type Staff = {
   status: string;
 };
 
-const initialStaffData: Staff[] = [
-  {
-    id: 1,
-    name: 'John Doe',
-    call: '123-456-7890',
-    whatsapp: '1234567890',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    call: '098-765-4321',
-    whatsapp: '0987654321',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'Peter Jones',
-    call: '111-222-3333',
-    whatsapp: '1112223333',
-    status: 'Inactive',
-  },
-  {
-    id: 4,
-    name: 'Alice Brown',
-    call: '444-555-6666',
-    whatsapp: '4445556666',
-    status: 'Active',
-  },
-  {
-    id: 5,
-    name: 'Bob White',
-    call: '777-888-9999',
-    whatsapp: '7778889999',
-    status: 'Active',
-  },
-];
+
 
 function TotalStaffPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -76,11 +40,11 @@ function TotalStaffPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate API call
+    // Placeholder for future API call
     const timer = setTimeout(() => {
-      setStaff(initialStaffData);
       setLoading(false);
-    }, 1000); // Simulate 1 second loading time
+      setStaff([]); // Ensure staff is empty until real data arrives
+    }, 500); // Simulate a quick load time for empty data
 
     return () => clearTimeout(timer);
   }, []);
